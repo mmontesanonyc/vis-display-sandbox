@@ -13,21 +13,191 @@
     <script src="https://kit.fontawesome.com/da9b183546.js" crossorigin="anonymous"></script>
 
     <!--Bootstrap CSS-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    
     <!-- Leaflet --> 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
 
 </head>
 
+<style>
+    .show {
+        display: block
+    }
+
+    .hide {
+    display: none
+}
+
+.callout-box {
+    background-color: lightgray;
+    border-left: 2px solid gray;
+    font-size: .875rem;
+}
+
+</style>
+
 <body>
 
-    <div class="container">
-        <h1>Sandbox</h1>    
+<div class="container">
+    <h1>Sandbox</h1>
+    <hr>
+    <h2>Self-reported health</h2>
+    <p>
+        Would you say that in general your health is Excellent, Very Good, Good, Fair or Poor?
+    </p>
+
+    <div class="mb-2" id="viewButtons">
+        <button class="btn btn-outline-primary active mr-2" data-view="overview">
+            Overview
+        </button>
+        <button class="btn btn-outline-primary mr-2" data-view="time">
+            By time
+        </button>
+        <button class="btn btn-outline-primary mr-2" data-view="neighborhood">
+            By neighborhood
+        </button>
+        <button class="btn btn-outline-primary mr-2" data-view="group">
+            By group
+        </button>
     </div>
 
 
+    <div id="overview" class="content-section show py-2">
+        <div style="min-height:616px" id="datawrapper-vis-8xp07"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/8xp07/embed.js" charset="utf-8" data-target="#datawrapper-vis-8xp07"></script><noscript><img src="https://datawrapper.dwcdn.net/8xp07/full.png" alt="Split Bars" /></noscript></div>
+    </div>
+
+    <div id="time" class="content-section hide py-2">
+        <div class="dropdown ">
+            <button class="btn btn-sm btn-secondary dropdown-toggle px-4"
+                    type="button"
+                    id="ratingDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                Excellent
+            </button>
+
+            <ul class="dropdown-menu" aria-labelledby="ratingDropdown">
+                <li><a class="dropdown-item active px-4" href="#" data-value="Excellent">Excellent</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Very good">Very good</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Good">Good</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Fair/poor">Fair/poor</a></li>
+            </ul>
+        </div>
+
+        <div style="min-height:250px" id="datawrapper-vis-r92wW"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/r92wW/embed.js" charset="utf-8" data-target="#datawrapper-vis-r92wW"></script><noscript><img src="https://datawrapper.dwcdn.net/r92wW/full.png" alt="Line chart" /></noscript></div>
+        <br>
+        <div style="min-height:278px" id="datawrapper-vis-u9R46"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/u9R46/embed.js" charset="utf-8" data-target="#datawrapper-vis-u9R46"></script><noscript><img src="https://datawrapper.dwcdn.net/u9R46/full.png" alt="Small multiple line chart" /></noscript></div>
+
+    </div>
+
+    <div id="neighborhood" class="content-section hide py-2">
+            <button class="btn btn-sm btn-secondary px-4 mb-2">
+                < 2020 > 
+            </button>
+
+            <div class="row">
+                
+                <div class="col-md-6 mb-4">
+                    <div id="datawrapper-vis-VaNJ1">
+                        <script type="text/javascript" defer 
+                        src="https://datawrapper.dwcdn.net/VaNJ1/embed.js" 
+                        charset="utf-8" 
+                        data-target="#datawrapper-vis-VaNJ1"></script>
+                        <noscript>
+                        <img src="https://datawrapper.dwcdn.net/VaNJ1/full.png" alt="Choropleth map" />
+                        </noscript>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div id="datawrapper-vis-XBKpa">
+                        <script type="text/javascript" defer 
+                        src="https://datawrapper.dwcdn.net/XBKpa/embed.js" 
+                        charset="utf-8" 
+                        data-target="#datawrapper-vis-XBKpa"></script>
+                        <noscript>
+                        <img src="https://datawrapper.dwcdn.net/XBKpa/full.png" alt="Line chart" />
+                        </noscript>
+                    </div>
+
+                    <div class="callout-box p-2 my-2">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tristique, justo a finibus consequat, elit ex sagittis lorem, et tempus lacus ante non augue. Donec vestibulum dignissim turpis, ac mattis augue luctus ut. Phasellus turpis nunc, sagittis ut lectus faucibus, posuere pharetra dolor. Morbi porta volutpat mollis. Sed convallis orci eu arcu accumsan, a ornare nisi elementum. Aliquam erat volutpat. Nullam turpis turpis, consequat in ullamcorper at, cursus varius mauris. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. </p>
+                    </div>
+                </div>
+
+            </div>
+
+
+    </div>
+
+    <div id="group" class="content-section hide py-2">
+        Group
+    </div>
+
+    <hr>
+    <h4>Related content</h4>
+</div>
+
+
+
+<script>
+    const buttons = document.querySelectorAll('#viewButtons button');
+    // const contentTitle = document.getElementById('contentTitle');
+    const sections = document.querySelectorAll('.content-section');
+
+    const titles = {
+        overview: "Overview",
+        time: "By time",
+        neighborhood: "By neighborhood",
+        group: "By group"
+    };
+
+    buttons.forEach(button => {
+        button.addEventListener('click', function () {
+
+            const view = this.dataset.view;
+
+            // Move active class
+            buttons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            // Update title
+            // contentTitle.textContent = titles[view];
+
+            // Hide all sections
+            sections.forEach(section => {
+                section.classList.remove('show');
+                section.classList.add('hide');
+            });
+
+            // Show selected section
+            const activeSection = document.getElementById(view);
+            activeSection.classList.remove('hide');
+            activeSection.classList.add('show');
+        });
+    });
+
+
+  document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      // Update button text
+      const dropdownButton = document.getElementById('ratingDropdown');
+      dropdownButton.textContent = this.dataset.value;
+
+      // Remove active class from all items
+      document.querySelectorAll('.dropdown-item').forEach(el => {
+        el.classList.remove('active');
+      });
+
+      // Add active class to selected item
+      this.classList.add('active');
+    });
+  });
+</script>
 
 
 
@@ -38,10 +208,8 @@
 </body>
 
     <!--Bootstrap JS-->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    
     <!-- Vega-Lite -->
     <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
