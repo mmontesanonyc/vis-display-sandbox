@@ -31,8 +31,8 @@
 }
 
 .callout-box {
-    background-color: lightgray;
-    border-left: 2px solid gray;
+    background-color: #f8f9fa;
+    border-left: 5px solid lightgray;
     font-size: .875rem;
 }
 
@@ -48,7 +48,7 @@
         Would you say that in general your health is Excellent, Very Good, Good, Fair or Poor?
     </p>
 
-    <div class="mb-2" id="viewButtons">
+    <div class="mb-2 border-bottom pb-2" id="viewButtons">
         <button class="btn btn-outline-primary active mr-2" data-view="overview">
             Overview
         </button>
@@ -69,21 +69,36 @@
     </div>
 
     <div id="time" class="content-section hide py-2">
-        <div class="dropdown ">
+        <div class="d-flex align-items-center gap-3">
+
+        <div class="dropdown">
             <button class="btn btn-sm btn-secondary dropdown-toggle px-4"
                     type="button"
                     id="ratingDropdown"
                     data-bs-toggle="dropdown"
                     aria-expanded="false">
-                Excellent
+            Excellent
             </button>
 
             <ul class="dropdown-menu" aria-labelledby="ratingDropdown">
-                <li><a class="dropdown-item active px-4" href="#" data-value="Excellent">Excellent</a></li>
-                <li><a class="dropdown-item px-4" href="#" data-value="Very good">Very good</a></li>
-                <li><a class="dropdown-item px-4" href="#" data-value="Good">Good</a></li>
-                <li><a class="dropdown-item px-4" href="#" data-value="Fair/poor">Fair/poor</a></li>
+            <li><a class="dropdown-item active px-4" href="#" data-value="Excellent">Excellent</a></li>
+            <li><a class="dropdown-item px-4" href="#" data-value="Very good">Very good</a></li>
+            <li><a class="dropdown-item px-4" href="#" data-value="Good">Good</a></li>
+            <li><a class="dropdown-item px-4" href="#" data-value="Fair/poor">Fair/poor</a></li>
             </ul>
+        </div>
+
+        <div class="form-check form-switch mb-0">
+            <input class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="myToggle"
+                >
+            <label class="form-check-label" for="myToggle">
+            Show all
+            </label>
+        </div>
+
         </div>
 
         <div style="min-height:250px" id="datawrapper-vis-r92wW"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/r92wW/embed.js" charset="utf-8" data-target="#datawrapper-vis-r92wW"></script><noscript><img src="https://datawrapper.dwcdn.net/r92wW/full.png" alt="Line chart" /></noscript></div>
@@ -93,9 +108,47 @@
     </div>
 
     <div id="neighborhood" class="content-section hide py-2">
+        <div class="d-flex align-items-center gap-3">
+
+            <div class="dropdown">
+                <button class="btn btn-sm btn-secondary dropdown-toggle px-4 mb-2"
+                        type="button"
+                        id="ratingDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                Excellent
+                </button>
+
+                <ul class="dropdown-menu" aria-labelledby="ratingDropdown">
+                <li><a class="dropdown-item active px-4" href="#" data-value="Excellent">Excellent</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Very good">Very good</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Good">Good</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Fair/poor">Fair/poor</a></li>
+                </ul>
+            </div>
+
             <button class="btn btn-sm btn-secondary px-4 mb-2">
                 < 2020 > 
             </button>
+
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle px-4 mb-2 mr-4"
+                    type="button"
+                    id="ratingDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+            Choose neighborhood
+            </button>
+
+            <div class="form-check form-switch ml-4">
+                    <input class="form-check-input" 
+                            type="checkbox" 
+                            role="switch" 
+                            id="myToggle" checked>
+                    <label class="form-check-label" for="myToggle">
+                        Show CIs
+                    </label>
+                    </div>
+            </div>
 
             <div class="row">
                 
@@ -112,6 +165,7 @@
                 </div>
 
                 <div class="col-md-6 mb-4">
+
                     <div id="datawrapper-vis-XBKpa">
                         <script type="text/javascript" defer 
                         src="https://datawrapper.dwcdn.net/XBKpa/embed.js" 
@@ -133,11 +187,56 @@
     </div>
 
     <div id="group" class="content-section hide py-2">
-        Group
+        <div class="d-flex align-items-center flex-wrap gap-2">
+
+            <span>Show data for</span>
+
+            <!-- First dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        id="groupDropdown1"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                Borough
+                </button>
+                <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-value="Group 1">Group 1</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Group 2</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Group 3</a></li>
+                </ul>
+            </div>
+
+            <span>by</span>
+
+            <!-- Second dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        id="groupDropdown2"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                age
+                </button>
+                <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-value="Group 1">Group 1</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Group 2</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Group 3</a></li>
+                </ul>
+            </div>
+
+            </div>
+
+        <div class="my-2">
+            <div style="min-height:266px" id="datawrapper-vis-URS9U"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/URS9U/embed.js" charset="utf-8" data-target="#datawrapper-vis-URS9U"></script><noscript><img src="https://datawrapper.dwcdn.net/URS9U/full.png" alt="Table" /></noscript></div>
+            
+            <div style="min-height:266px" id="datawrapper-vis-MfRrl"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/MfRrl/embed.js" charset="utf-8" data-target="#datawrapper-vis-MfRrl"></script><noscript><img src="https://datawrapper.dwcdn.net/MfRrl/full.png" alt="Table" /></noscript></div>
+        </div>
     </div>
 
     <hr>
     <h4>Related content</h4>
+    <strong>Related indicators</strong> | <strong>Related topics</strong> | Publications about this indicators
 </div>
 
 
