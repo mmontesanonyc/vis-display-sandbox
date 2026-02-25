@@ -178,13 +178,24 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary">></button>
                 </div>
 
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle mr-4"
-                    type="button"
-                    id="neighborhoodDD"
-                    data-bs-toggle="neighbDD"
-                    aria-expanded="false">
-            Choose neighborhood
-            </button>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle mr-4"
+                        type="button"
+                        id="neighborhoodDD"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                Highlight neighborhood
+                </button>
+
+                <ul class="dropdown-menu" aria-labelledby="neighborhoodDD">
+                <li><a class="dropdown-item active px-4" href="#" data-value="Excellent">Astoria/LIC</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Very good">Other neighb</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Good">Other neighb</a></li>
+                <li><a class="dropdown-item px-4" href="#" data-value="Fair/poor">Other neighb...</a></li>
+                </ul>
+
+            </div>
+
 
             <div class="form-check form-switch ms-auto">
                     <input class="form-check-input" 
@@ -246,9 +257,13 @@
                 Borough
                 </button>
                 <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" data-value="Group 1">Group 1</a></li>
-                <li><a class="dropdown-item" href="#" data-value="Group 2">Group 2</a></li>
-                <li><a class="dropdown-item" href="#" data-value="Group 3">Group 3</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 1">Age</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Education</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Employment</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Poverty</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Marital status</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Sex</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Race/ethnicity</a></li>
                 </ul>
             </div>
 
@@ -264,9 +279,13 @@
                 age
                 </button>
                 <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" data-value="Group 1">Group 1</a></li>
-                <li><a class="dropdown-item" href="#" data-value="Group 2">Group 2</a></li>
-                <li><a class="dropdown-item" href="#" data-value="Group 3">Group 3</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 1">Age</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Education</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Employment</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Poverty</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Marital status</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 2">Sex</a></li>
+                <li><a class="dropdown-item" href="#" data-value="Group 3">Race/ethnicity</a></li>
                 </ul>
             </div>
 
@@ -352,6 +371,7 @@
                 <li>Big question: what views to show together, to add context or detail? Trend, doing by-borough small multiples; in Neighborhood, also adding a Citywide trend, and a click-to-add-neighborhood trend. Too much?</li>
                 <li>This is more like current EQ displays that focus on a single indicators, compared to an EHDP display that lets you toggle indicators that share a common topic. Brings up Unit Of Organization question.</li>
                 <li>Do we want a table view?</li>
+                <li>We may consider metadata or conditions for value-judgement answers: eg is yes good or is no good? is there a sequential nature to categorical responses?</li>
             </ul>
         </p>
     </div>
