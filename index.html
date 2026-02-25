@@ -22,6 +22,10 @@
 </head>
 
 <style>
+    body {
+        background-color: #f8f9fa;
+    }
+
     .show {
         display: block
     }
@@ -36,43 +40,75 @@
     font-size: .875rem;
 }
 
+.content-section {
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    background-color: white;
+}
+
+.card-topper {
+    border-bottom: 1px solid darkgray;
+    
+}
+
+.content-main {
+
+}
+
+.content-footer {
+    background-color: #f8f9fa;
+    font-size: .875rem;
+}
+
 </style>
 
 <body>
 
 <div class="container">
-    <h1>Sandbox</h1>
-    <hr>
-    <h2>Self-reported health</h2>
+    <h1 class="mb-4">Sandbox</h1>
+
+    <a href="#" class="my-4">Change indicator</a>
+    <h2 class="mt-2">Self-reported health</h2>
     <p>
         Would you say that in general your health is Excellent, Very Good, Good, Fair or Poor?
     </p>
 
-    <div class="mb-2 border-bottom pb-2" id="viewButtons">
-        <button class="btn btn-outline-primary active mr-2" data-view="overview">
+    <div class="mb-2 pb-2" id="viewButtons">
+        <button class="btn btn-md btn-outline-primary active mr-2" data-view="overview">
             Overview
         </button>
-        <button class="btn btn-outline-primary mr-2" data-view="time">
+        <button class="btn btn-md  btn-outline-primary mr-2" data-view="time">
             By time
         </button>
         <button class="btn btn-outline-primary mr-2" data-view="neighborhood">
             By neighborhood
         </button>
-        <button class="btn btn-outline-primary mr-2" data-view="group">
+        <button class="btn btn-md btn-outline-primary mr-2" data-view="group">
             By group
         </button>
     </div>
 
 
-    <div id="overview" class="content-section show py-2">
-        <div style="min-height:616px" id="datawrapper-vis-8xp07"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/8xp07/embed.js" charset="utf-8" data-target="#datawrapper-vis-8xp07"></script><noscript><img src="https://datawrapper.dwcdn.net/8xp07/full.png" alt="Split Bars" /></noscript></div>
+    <div id="overview" class="content-section show">
+
+        <div class="content-main p-2">
+            <div style="min-height:616px" id="datawrapper-vis-8xp07"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/8xp07/embed.js" charset="utf-8" data-target="#datawrapper-vis-8xp07"></script><noscript><img src="https://datawrapper.dwcdn.net/8xp07/full.png" alt="Split Bars" /></noscript></div>
+
+        </div>
+    
+        <div class="content-footer p-2">
+            <a href="#" class="btn btn-sm btn-outline-primary ms-auto">Download <i class="fas fa-download"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-primary ">Data details <i class="fas fa-info-circle"></i></a>
+
+        </div>
     </div>
 
-    <div id="time" class="content-section hide py-2">
-        <div class="d-flex align-items-center gap-3">
+    <div id="time" class="content-section hide">
+
+        <div class="d-flex align-items-center gap-3 card-topper p-2">
 
         <div class="dropdown">
-            <button class="btn btn-sm btn-secondary dropdown-toggle px-4"
+            <button class="btn btn-sm btn-secondary dropdown-toggle"
                     type="button"
                     id="ratingDropdown"
                     data-bs-toggle="dropdown"
@@ -101,17 +137,26 @@
 
         </div>
 
-        <div style="min-height:250px" id="datawrapper-vis-r92wW"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/r92wW/embed.js" charset="utf-8" data-target="#datawrapper-vis-r92wW"></script><noscript><img src="https://datawrapper.dwcdn.net/r92wW/full.png" alt="Line chart" /></noscript></div>
-        <br>
-        <div style="min-height:278px" id="datawrapper-vis-u9R46"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/u9R46/embed.js" charset="utf-8" data-target="#datawrapper-vis-u9R46"></script><noscript><img src="https://datawrapper.dwcdn.net/u9R46/full.png" alt="Small multiple line chart" /></noscript></div>
+        <div class="content-main p-2">
+            <div style="min-height:250px" id="datawrapper-vis-r92wW"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/r92wW/embed.js" charset="utf-8" data-target="#datawrapper-vis-r92wW"></script><noscript><img src="https://datawrapper.dwcdn.net/r92wW/full.png" alt="Line chart" /></noscript></div>
+            <br>
+            <div style="min-height:278px" id="datawrapper-vis-u9R46"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/u9R46/embed.js" charset="utf-8" data-target="#datawrapper-vis-u9R46"></script><noscript><img src="https://datawrapper.dwcdn.net/u9R46/full.png" alt="Small multiple line chart" /></noscript></div>
+        </div>
+
+        <div class="content-footer p-2">
+            <a href="#" class="btn btn-sm btn-outline-primary ms-auto">Download <i class="fas fa-download"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-primary ">Data details <i class="fas fa-info-circle"></i></a>
+
+        </div>
+
 
     </div>
 
-    <div id="neighborhood" class="content-section hide py-2">
-        <div class="d-flex align-items-center gap-3">
+    <div id="neighborhood" class="content-section hide">
+        <div class="card-topper d-flex align-items-center gap-3 p-2 ">
 
             <div class="dropdown">
-                <button class="btn btn-sm btn-secondary dropdown-toggle px-4 mb-2"
+                <button class="btn btn-sm btn-secondary dropdown-toggle"
                         type="button"
                         id="ratingDropdown"
                         data-bs-toggle="dropdown"
@@ -127,19 +172,21 @@
                 </ul>
             </div>
 
-            <button class="btn btn-sm btn-secondary px-4 mb-2">
-                < 2020 > 
-            </button>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" class="btn btn-sm btn-outline-secondary"><</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" inactive>2020</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary">></button>
+                </div>
 
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle px-4 mb-2 mr-4"
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle mr-4"
                     type="button"
-                    id="ratingDropdown"
-                    data-bs-toggle="dropdown"
+                    id="neighborhoodDD"
+                    data-bs-toggle="neighbDD"
                     aria-expanded="false">
             Choose neighborhood
             </button>
 
-            <div class="form-check form-switch ml-4">
+            <div class="form-check form-switch ms-auto">
                     <input class="form-check-input" 
                             type="checkbox" 
                             role="switch" 
@@ -148,46 +195,44 @@
                         Show CIs
                     </label>
                     </div>
+        </div>
+
+        <div class="row content-main p-2">
+            
+            <div class="col-md-6 mb-4">
+                <div style="min-height:667px" id="datawrapper-vis-VaNJ1"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/VaNJ1/embed.js" charset="utf-8" data-target="#datawrapper-vis-VaNJ1"></script><noscript><img src="https://datawrapper.dwcdn.net/VaNJ1/full.png" alt="Choropleth map" /></noscript></div>
             </div>
 
-            <div class="row">
-                
-                <div class="col-md-6 mb-4">
-                    <div id="datawrapper-vis-VaNJ1">
-                        <script type="text/javascript" defer 
-                        src="https://datawrapper.dwcdn.net/VaNJ1/embed.js" 
-                        charset="utf-8" 
-                        data-target="#datawrapper-vis-VaNJ1"></script>
-                        <noscript>
-                        <img src="https://datawrapper.dwcdn.net/VaNJ1/full.png" alt="Choropleth map" />
-                        </noscript>
-                    </div>
+            <div class="col-md-6 mb-4">
+
+                <div id="datawrapper-vis-XBKpa">
+                    <script type="text/javascript" defer 
+                    src="https://datawrapper.dwcdn.net/XBKpa/embed.js" 
+                    charset="utf-8" 
+                    data-target="#datawrapper-vis-XBKpa"></script>
+                    <noscript>
+                    <img src="https://datawrapper.dwcdn.net/XBKpa/full.png" alt="Line chart" />
+                    </noscript>
                 </div>
 
-                <div class="col-md-6 mb-4">
-
-                    <div id="datawrapper-vis-XBKpa">
-                        <script type="text/javascript" defer 
-                        src="https://datawrapper.dwcdn.net/XBKpa/embed.js" 
-                        charset="utf-8" 
-                        data-target="#datawrapper-vis-XBKpa"></script>
-                        <noscript>
-                        <img src="https://datawrapper.dwcdn.net/XBKpa/full.png" alt="Line chart" />
-                        </noscript>
-                    </div>
-
-                    <div class="callout-box p-2 my-2">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tristique, justo a finibus consequat, elit ex sagittis lorem, et tempus lacus ante non augue. Donec vestibulum dignissim turpis, ac mattis augue luctus ut. Phasellus turpis nunc, sagittis ut lectus faucibus, posuere pharetra dolor. Morbi porta volutpat mollis. Sed convallis orci eu arcu accumsan, a ornare nisi elementum. Aliquam erat volutpat. Nullam turpis turpis, consequat in ullamcorper at, cursus varius mauris. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. </p>
-                    </div>
+                <div class="callout-box p-2 my-2">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut tristique, justo a finibus consequat, elit ex sagittis lorem, et tempus lacus ante non augue. Donec vestibulum dignissim turpis, ac mattis augue luctus ut. Phasellus turpis nunc, sagittis ut lectus faucibus, posuere pharetra dolor. Morbi porta volutpat mollis. Sed convallis orci eu arcu accumsan, a ornare nisi elementum. Aliquam erat volutpat. Nullam turpis turpis, consequat in ullamcorper at, cursus varius mauris. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. </p>
                 </div>
-
             </div>
+
+        </div>
+
+        <div class="content-footer p-2">
+            <a href="#" class="btn btn-sm btn-outline-primary ms-auto">Download <i class="fas fa-download"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-primary ">Data details <i class="fas fa-info-circle"></i></a>
+
+        </div>
 
 
     </div>
 
-    <div id="group" class="content-section hide py-2">
-        <div class="d-flex align-items-center flex-wrap gap-2">
+    <div id="group" class="content-section hide ">
+        <div class="d-flex align-items-center card-topper p-2 flex-wrap gap-2">
 
             <span>Show data for</span>
 
@@ -225,18 +270,93 @@
                 </ul>
             </div>
 
+            <span class="ms-auto">Show as:</span>
+
+            <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    id="chartTypeDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                Bar chart
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                <a class="dropdown-item" href="#" data-chart="bar">Bar chart</a>
+                </li>
+                <li>
+                <a class="dropdown-item" href="#" data-chart="heatmap">Heatmap</a>
+                </li>
+            </ul>
             </div>
 
-        <div class="my-2">
-            <div style="min-height:266px" id="datawrapper-vis-URS9U"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/URS9U/embed.js" charset="utf-8" data-target="#datawrapper-vis-URS9U"></script><noscript><img src="https://datawrapper.dwcdn.net/URS9U/full.png" alt="Table" /></noscript></div>
+            </div>
+
+        <div class="content-main p-2">
+            <div id="groupBar">
+                <div style="min-height:266px" id="datawrapper-vis-URS9U"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/URS9U/embed.js" charset="utf-8" data-target="#datawrapper-vis-URS9U"></script><noscript><img src="https://datawrapper.dwcdn.net/URS9U/full.png" alt="Table" /></noscript></div>
+
+            </div>
+
+            <div id="groupHeat" class="hide">
+                            <div style="min-height:266px" id="datawrapper-vis-MfRrl"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/MfRrl/embed.js" charset="utf-8" data-target="#datawrapper-vis-MfRrl"></script><noscript><img src="https://datawrapper.dwcdn.net/MfRrl/full.png" alt="Table" /></noscript></div>
+            </div>
             
-            <div style="min-height:266px" id="datawrapper-vis-MfRrl"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/MfRrl/embed.js" charset="utf-8" data-target="#datawrapper-vis-MfRrl"></script><noscript><img src="https://datawrapper.dwcdn.net/MfRrl/full.png" alt="Table" /></noscript></div>
+        </div>
+
+        <div class="content-footer p-2">
+            <a href="#" class="btn btn-sm btn-outline-primary ms-auto">Download <i class="fas fa-download"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-primary ">Data details <i class="fas fa-info-circle"></i></a>
+
         </div>
     </div>
 
-    <hr>
+    <div id="related" class="my-4">
     <h4>Related content</h4>
-    <strong>Related indicators</strong> | <strong>Related topics</strong> | Publications about this indicators
+        <div class="d-flex flex-wrap">
+            <div class="flex-fill p-2 border">
+                <strong>Related indicators</strong>
+                <p>
+                    <ul><a href="#">Adults with a personal doctor</a></ul>
+                    <ul><a href="#">Poverty</a></ul>
+
+                </p>
+            </div>
+            <div class="flex-fill p-2 border"> 
+                <strong>Related topics</strong>
+                <p>
+                    <ul><a href="#">Health and health care</a></ul>
+                    <ul><a href="#">Social determinants of health</a></ul>
+                </p>
+            </div>
+            <div class="flex-fill p-2 border">
+                Publications
+                <p>
+                    <ul><a href="#">Epi Data Brief: Lorem ipsum dolor malefectur (2022)</a></ul>
+                    <ul><a href="#">Report on New Yorkers' Health (2019)</a></ul>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notes" class="my-4">
+        <p><strong>Notes on this approach:</strong></p>
+        <p>
+            <ul>
+                <li>Some basic functionality works, but plenty of buttons don't - they're just stand-ins</li>
+                <li>Use a CHS indicator with 4 responses (can we simplify further for yes/no questions?)</li>
+                <li>Remove particularly complex functions: compare two indicators; test statistical significance</li>
+                <li>Give a logical structure (overview, time, neighborhood, groups)</li>
+                <li>Add some user-controlled display options, like Show CIs, or Bar/Heatmap (in Groups)</li>
+                <li>Big question: what's the best 'overview' landing display?</li>
+                <li>Big question: what views to show together, to add context or detail? Trend, doing by-borough small multiples; in Neighborhood, also adding a Citywide trend, and a click-to-add-neighborhood trend. Too much?</li>
+                <li>This is more like current EQ displays that focus on a single indicators, compared to an EHDP display that lets you toggle indicators that share a common topic. Brings up Unit Of Organization question.</li>
+                <li>Do we want a table view?</li>
+            </ul>
+        </p>
+    </div>
+
+
 </div>
 
 
@@ -296,6 +416,37 @@
       this.classList.add('active');
     });
   });
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+  const dropdownItems = document.querySelectorAll('#chartTypeDropdown + .dropdown-menu .dropdown-item');
+  const dropdownButton = document.getElementById('chartTypeDropdown');
+
+  const barChart = document.getElementById('groupBar');
+  const heatmap = document.getElementById('groupHeat');
+
+  dropdownItems.forEach(item => {
+    item.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const chartType = this.dataset.chart;
+
+      // Update button label
+      dropdownButton.textContent = this.textContent;
+
+      // Show/hide charts
+      if (chartType === 'bar') {
+        barChart.style.display = 'block';
+        heatmap.style.display = 'none';
+      } else {
+        barChart.style.display = 'none';
+        heatmap.style.display = 'block';
+      }
+    });
+  });
+
+});
 </script>
 
 
