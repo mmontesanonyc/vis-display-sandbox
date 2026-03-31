@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>Sandbox</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!--FA kit -->
+    <script src="https://kit.fontawesome.com/da9b183546.js" crossorigin="anonymous"></script>
+
+    <!--Bootstrap CSS-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    
+    <!-- Leaflet --> 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
+
+</head>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .show {
+        display: block
+    }
+
+    .hide {
+    display: none
+}
+
+.callout-box {
+    background-color: #f8f9fa;
+    border-left: 5px solid lightgray;
+    font-size: .875rem;
+}
+
+.content-section {
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    background-color: white;
+}
+
+.card-topper {
+    border-bottom: 1px solid darkgray;
+    
+}
+
+.content-main {
+
+}
+
+.content-footer {
+    background-color: #f8f9fa;
+    font-size: .875rem;
+}
+
+.row.no-gutters {
+    min-height: 150vh; /* force scroll */
+}
+
+.aggregate-card {
+    border-radius: 6px;
+}
+
+.fs-xs {
+    font-size: .75rem
+}
+
+</style>
+
+<body>
+
+<div class="container">
+    <h1 class="mb-4">Sandbox</h1>
+
+    <a href="#" class="my-4">Back to topics</a>
+    <h2 class="mt-2 border-top pt-2">Asthma</h2>
+
+    <div class="row">
+        <div class="col">
+            Available datasets:
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="aggregate-card border my-3 mx-2 p-2">
+            <div class="d-flex">
+                <div class="me-auto">
+                    <h5>Adults with asthma</h5>
+                    <p class="">Estimated number of adults aged 18 years and older who reported still having medically diagnosed asthma.</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge text-black fw-normal bg-secondary-subtle">2020</span>
+                            <span class="badge text-black fw-normal bg-primary-subtle">Community Health Survey</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">UHF34</span>
+                            <!--
+                            <span class="badge text-black fw-normal bg-danger-subtle">Danger</span>
+                            <span class="badge text-black fw-normal bg-warning-subtle">Warning</span>
+                            -->
+                        </div>
+                </div>
+                <div class="text-end">
+                    <h5>14.2%</h5>
+                    <p class="fs-xs mb-1">Age-adjusted</p>
+                    <button class="btn btn-sm w-100 btn-outline-primary">Get full data</button>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="aggregate-card border my-3 mx-2 p-2">
+            <div class="d-flex">
+                <div class="me-auto">
+                    <h5>Adults with a recent asthma attack</h5>
+                    <p class="">Adults reporting an asthma diagnosis, and symptoms, in the last 12 months (from when they were surveyed).</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge text-black fw-normal bg-secondary-subtle">2022</span>
+                            <span class="badge text-black fw-normal bg-primary-subtle">Community Health Survey</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">UHF34</span>
+                            <!--
+                            <span class="badge text-black fw-normal bg-danger-subtle">Danger</span>
+                            <span class="badge text-black fw-normal bg-warning-subtle">Warning</span>
+                            -->
+                        </div>
+                </div>
+                <div class="text-end">
+                    <h5>4.3%</h5>
+                    <p class="fs-xs mb-1">Age-adjusted</p>
+                    <button class="btn btn-sm w-100 btn-outline-primary">Get full data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="aggregate-card border my-3 mx-2 p-2">
+            <div class="d-flex">
+                <div class="me-auto">
+                    <h5>Children ever diagnosed with asthma</h5>
+                    <p class="">Children ages 1 to 13 that have ever received an asthma diagnosis.</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge text-black fw-normal bg-secondary-subtle">2023</span>
+                            <span class="badge text-black fw-normal bg-primary-subtle">NYC KIDS Survey</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">NHAC areas</span>
+                            <!--
+                            <span class="badge text-black fw-normal bg-danger-subtle">Danger</span>
+                            <span class="badge text-black fw-normal bg-warning-subtle">Warning</span>
+                            -->
+                        </div>
+                </div>
+                <div class="text-end">
+                    <h5>11.5%</h5>
+                    <p class="fs-xs mb-1"></p>
+                    <button class="btn btn-sm w-100 btn-outline-primary">Get full data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="aggregate-card border my-3 mx-2 p-2">
+            <div class="d-flex">
+                <div class="me-auto">
+                    <h5>Asthma ED visits</h5>
+                    <p class="">Emergency department visits for asthma.</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge text-black fw-normal bg-secondary-subtle">2023</span>
+                            <span class="badge text-black fw-normal bg-primary-subtle">SPARCS</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">NTA</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">CD</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">UHF42</span>
+                            <span class="badge text-black fw-normal bg-danger-subtle">Age</span>
+                            <!--
+                            <span class="badge text-black fw-normal bg-warning-subtle">Warning</span>
+                            -->
+                        </div>
+                </div>
+                <div class="text-end">
+                    <h5>104.7</h5>
+                    <p class="fs-xs mb-1">per 10,000</p>
+                    <button class="btn btn-sm w-100 btn-outline-primary">Get full data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="aggregate-card border my-3 mx-2 p-2">
+            <div class="d-flex">
+                <div class="me-auto">
+                    <h5>Asthma hospitalizations</h5>
+                    <p class="">Hospitalizations for asthma.</p>
+                        <div class="d-flex gap-2">
+                            <span class="badge text-black fw-normal bg-secondary-subtle">2023</span>
+                            <span class="badge text-black fw-normal bg-primary-subtle">SPARCS</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">NTA</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">CD</span>
+                            <span class="badge text-black fw-normal bg-success-subtle">UHF42</span>
+                            <span class="badge text-black fw-normal bg-danger-subtle">Age</span>
+                            <!--
+                            <span class="badge text-black fw-normal bg-warning-subtle">Warning</span>
+                            -->
+                        </div>
+                </div>
+                <div class="text-end">
+                    <h5>64.2</h5>
+                    <p class="fs-xs mb-1">per 10,000</p>
+                    <button class="btn btn-sm w-100 btn-outline-primary">Get full data</button>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+        <strong>Related topics:</strong>
+        <p><a href="">Housing</a> | <a href="">Health care</a> | <a href="">Poverty</a> | <a href="">Social and economic conditions</a> | <a href="">Air quality</a> | <a href="">Hospitalizations</a> | <a href="">ED Visits</a> | <a href="">Child health</a> | <a href="">Survey data</a></p>
+
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+    <!--Bootstrap JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    
+    <!-- Vega-Lite -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
+
+</html>
