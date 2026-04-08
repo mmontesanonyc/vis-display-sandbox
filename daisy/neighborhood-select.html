@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
 
+    <!-- Include topojson-client library -->
+    <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+
 </head>
 
 <style>
@@ -67,7 +70,7 @@
                         type="text"
                         id="neighborhoodInput" 
                         placeholder="Enter a ZIP Code or neighborhood name"
-                        class="w-full px-3 py-3 text-base border border-base-300 rounded-md focus:outline-none focus:border-primary"
+                        class="w-full px-3 py-3 text-base border border-base-100 rounded-md"
                         />
                         <ul 
                         id="suggestions" 
@@ -79,10 +82,10 @@
 
                 <!-- Virus Dropdown -->
                 <div class="w-full">
-                                        <p class="text-sm text-base-content/60 mb-2">Virus:</p>
+                    <p class="text-sm text-base-content/60 mb-2">Virus:</p>
 
                     <select id="virus" name="virus"
-                    class="w-full px-3 py-3 text-base border border-base-300 rounded-md focus:outline-none focus:border-primary">
+                    class="w-full px-3 py-4 text-base border border-base-400 rounded-md">
 
                     <option value="covid-19" selected>COVID-19</option>
                     <option value="flu">Flu</option>
@@ -101,7 +104,7 @@
                         Map
                     </div>
 
-                    <div class="border rounded-md h-100 z-0">
+                    <div class="border rounded-md h-100 z-0 p-2">
                         Bar chart
                     </div>
 
@@ -139,6 +142,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 
         <script>
+
             var selectedVirus = "COVID-19"
                 document.querySelectorAll(".printVirus").forEach(el => {
                     el.innerHTML = selectedVirus;
@@ -155,6 +159,26 @@
                 metric: false,
                 position: 'bottomleft'
             }).addTo(map)
+
+            // Load the TopoJSON file
+            fetch('UHF34.topo.json')
+                .then(response => response.json())
+                .then(topoData => {
+                    console.log("TopoJSON objects:", Object.keys(topoData.objects));
+                    // For now just pick the first object
+                    const firstObjectName = Object.keys(topoData.objects)[0];
+                    console.log("Using object:", firstObjectName);
+
+                    const geojson = topojson.feature(topoData, topoData.objects[firstObjectName]);
+                    L.geoJSON(geojson, {
+                        style: {
+                            color: "#555",
+                            weight: 1,
+                            fillOpacity: 0.1
+                        }
+                    }).addTo(map);
+                })
+                .catch(err => console.error("Error loading TopoJSON:", err));
 
 
             // Event listener on Virus select
