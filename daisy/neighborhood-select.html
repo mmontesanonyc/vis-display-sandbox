@@ -141,14 +141,19 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 
-        <script>
+    <script>
 
-            var selectedVirus = "COVID-19"
-                document.querySelectorAll(".printVirus").forEach(el => {
-                    el.innerHTML = selectedVirus;
-                });
-
+        var selectedNeighborhood;
+        var topoJSON; 
+        var selectedVirus = "COVID-19"
+            document.querySelectorAll(".printVirus").forEach(el => {
+                el.innerHTML = selectedVirus;
+            });
+        
+        // First, initialize map and get topojson
+        function initialize() {
             var map = L.map('map').setView([40.715554,-74.0026642],10); // [Lat,Long],Zoom
+
             L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=dwIJ8hO2KsTMegUfEpYE',{
                 attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
             }).addTo(map);
@@ -160,16 +165,15 @@
                 position: 'bottomleft'
             }).addTo(map)
 
-            // Load the TopoJSON file
             fetch('UHF34.topo.json')
                 .then(response => response.json())
                 .then(topoData => {
-                    console.log("TopoJSON objects:", Object.keys(topoData.objects));
-                    // For now just pick the first object
-                    const firstObjectName = Object.keys(topoData.objects)[0];
-                    console.log("Using object:", firstObjectName);
 
-                    const geojson = topojson.feature(topoData, topoData.objects[firstObjectName]);
+                    topoJSON = topoData
+                    console.log(topoJSON)
+
+                    const geojson = topojson.feature(topoData, topoData.objects[Object.keys(topoData.objects)[0]]);
+
                     L.geoJSON(geojson, {
                         style: {
                             color: "#555",
@@ -180,130 +184,139 @@
                 })
                 .catch(err => console.error("Error loading TopoJSON:", err));
 
+        }    
 
-            // Event listener on Virus select
-            document.getElementById("virus").addEventListener("change", function (e) {
-                // Make sure the target is the select
-                if (e.target.name === "virus") {
-                    const selectedVirus = e.target.value;
-                    console.log(selectedVirus);
-                    // do whatever else you need with selectedVirus
-                    document.querySelectorAll(".printVirus").forEach(el => {
-                        el.innerHTML = selectedVirus;
-                    });
-                }
+        initialize()
+
+
+        // Next, use the topojson file to make the uhf34Data that can feed the menu (including GEOCODE)
+
+
+        // Then, initialize the menu stuff
+
+
+
+        // Event listener on Virus select
+        document.getElementById("virus").addEventListener("change", function (e) {
+            // Make sure the target is the select
+            if (e.target.name === "virus") {
+                const selectedVirus = e.target.value;
+                console.log(selectedVirus);
+                // do whatever else you need with selectedVirus
+                document.querySelectorAll(".printVirus").forEach(el => {
+                    el.innerHTML = selectedVirus;
+                });
+            }
+        });
+
+
+    // FEED AUTOCOMPLETE FORM
+    const uhf34Data = [
+        { name: "Kingsbridge and Riverdale", zips: ["10463", "10471"] },
+        { name: "The Northeast Bronx", zips: ["10466", "10469", "10470", "10475"] },
+        { name: "Fordham/Bronx Park", zips: ["10458", "10467", "10468"] },
+        { name: "Pelham/Throgs Neck", zips: ["10461", "10462", "10464", "10465", "10472", "10473"] },
+        { name: "The South Bronx", zips: ["10451", "10452", "10453", "10454", "10455", "10456", "10457", "10459", "10460", "10474"] },
+        { name: "Greenpoint", zips: ["11211", "11222"] },
+        { name: "Downtown Brooklyn/Heights/Slope", zips: ["11201", "11205", "11215", "11217", "11231"] },
+        { name: "Bedford Stuyvesant/Crown Heights", zips: ["11212", "11213", "11216", "11233", "11238"] },
+        { name: "East New York/New Lots", zips: ["11207", "11208"] },
+        { name: "Sunset Park", zips: ["11220", "11232"] },
+        { name: "Borough Park", zips: ["11204", "11218", "11219", "11230"] },
+        { name: "Flatbush", zips: ["11203", "11210", "11225", "11226"] },
+        { name: "Canarsie and Flatlands", zips: ["11234", "11236", "11239"] },
+        { name: "Bay Ridge/Bensonhurst", zips: ["11209", "11214", "11228"] },
+        { name: "Coney Island", zips: ["11223", "11224", "11229", "11235"] },
+        { name: "Williamsburg/Bushwick", zips: ["11206", "11221", "11237"] },
+        { name: "Washington Heights/Inwood", zips: ["10031", "10032", "10033", "10034", "10040"] },
+        { name: "Central Harlem", zips: ["10026", "10027", "10030", "10037", "10039"] },
+        { name: "East Harlem", zips: ["10029", "10035"] },
+        { name: "Upper West Side", zips: ["10023", "10024", "10025", "10069"] },
+        { name: "Upper East Side/Gramercy", zips: ["10010", "10016", "10017", "10021", "10022", "10028", "10044", "10065", "10075", "10128", "10162", "10165", "10170", "10171"] },
+        { name: "Chelsea/Greenwich Village", zips: ["10001", "10011", "10012", "10013", "10014", "10018", "10019", "10020", "10036"] },
+        { name: "Union Square/Lower Manhattan", zips: ["10002", "10003", "10004", "10005", "10006", "10007", "10009", "10038", "10048", "10280", "10282"] },
+        { name: "Long Island City/Astoria", zips: ["11101", "11102", "11103", "11104", "11105", "11106", "11109"] },
+        { name: "West Queens", zips: ["11368", "11369", "11370", "11372", "11373", "11377", "11378"] },
+        { name: "Flushing/Clearview", zips: ["11354", "11355", "11356", "11357", "11358", "11359", "11360"] },
+        { name: "Bayside/Little Neck/Fresh Meadows", zips: ["11361", "11362", "11363", "11364", "11365", "11366", "11367"] },
+        { name: "Ridgewood/Forest Hills", zips: ["11374", "11375", "11379", "11385"] },
+        { name: "Southwest Queens", zips: ["11414", "11415", "11416", "11417", "11418", "11419", "11420", "11421"] },
+        { name: "Jamaica", zips: ["11412", "11423", "11430", "11432", "11433", "11434", "11435", "11436"] },
+        { name: "Southeast Queens", zips: ["11001", "11004", "11005", "11040", "11411", "11413", "11422", "11426", "11427", "11428", "11429"] },
+        { name: "The Rockaways", zips: ["11691", "11692", "11693", "11694", "11697"] },
+        { name: "Northern Staten Island", zips: ["10301", "10302", "10303", "10304", "10305", "10310"] },
+        { name: "Southern Staten Island", zips: ["10306", "10307", "10308", "10309", "10312", "10314"] }
+    ];
+
+    const input = document.getElementById('neighborhoodInput');
+    const suggestionsUl = document.getElementById('suggestions');
+    const selectedDiv = document.getElementById('selected');
+    const selectedZips = document.getElementById('selectedZips');
+
+    input.addEventListener('input', (e) => {
+        const value = e.target.value.toLowerCase().trim();
+        suggestionsUl.innerHTML = '';
+
+        if (value.length === 0) {
+            suggestionsUl.style.display = 'none';
+            return;
+        }
+
+        const filtered = uhf34Data.filter(item => 
+            item.name.toLowerCase().startsWith(value) || 
+            item.zips.some(zip => zip.startsWith(value))
+        );
+
+        if (filtered.length === 0) {
+            suggestionsUl.style.display = 'none';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const li = document.createElement('li');
+            li.style.padding = '0.75rem 1rem';
+            li.style.cursor = 'pointer';
+            li.style.borderBottom = '1px solid lightgray';
+            li.style.fontSize = '16px';
+            li.style.color = 'var(--color-text-primary)';
+            li.innerHTML = `<strong>${item.name}</strong> <span style="font-size: 13px;">${item.zips.join(', ')}</span>`;
+
+            li.addEventListener('mouseover', () => {
+                li.style.backgroundColor = 'var(--color-background-tertiary)';
             });
 
-
-        // FEED AUTOCOMPLETE FORM
-        const uhf34Data = [
-            { name: "Kingsbridge and Riverdale", zips: ["10463", "10471"] },
-            { name: "The Northeast Bronx", zips: ["10466", "10469", "10470", "10475"] },
-            { name: "Fordham/Bronx Park", zips: ["10458", "10467", "10468"] },
-            { name: "Pelham/Throgs Neck", zips: ["10461", "10462", "10464", "10465", "10472", "10473"] },
-            { name: "The South Bronx", zips: ["10451", "10452", "10453", "10454", "10455", "10456", "10457", "10459", "10460", "10474"] },
-            { name: "Greenpoint", zips: ["11211", "11222"] },
-            { name: "Downtown Brooklyn/Heights/Slope", zips: ["11201", "11205", "11215", "11217", "11231"] },
-            { name: "Bedford Stuyvesant/Crown Heights", zips: ["11212", "11213", "11216", "11233", "11238"] },
-            { name: "East New York/New Lots", zips: ["11207", "11208"] },
-            { name: "Sunset Park", zips: ["11220", "11232"] },
-            { name: "Borough Park", zips: ["11204", "11218", "11219", "11230"] },
-            { name: "Flatbush", zips: ["11203", "11210", "11225", "11226"] },
-            { name: "Canarsie and Flatlands", zips: ["11234", "11236", "11239"] },
-            { name: "Bay Ridge/Bensonhurst", zips: ["11209", "11214", "11228"] },
-            { name: "Coney Island", zips: ["11223", "11224", "11229", "11235"] },
-            { name: "Williamsburg/Bushwick", zips: ["11206", "11221", "11237"] },
-            { name: "Washington Heights/Inwood", zips: ["10031", "10032", "10033", "10034", "10040"] },
-            { name: "Central Harlem", zips: ["10026", "10027", "10030", "10037", "10039"] },
-            { name: "East Harlem", zips: ["10029", "10035"] },
-            { name: "Upper West Side", zips: ["10023", "10024", "10025", "10069"] },
-            { name: "Upper East Side/Gramercy", zips: ["10010", "10016", "10017", "10021", "10022", "10028", "10044", "10065", "10075", "10128", "10162", "10165", "10170", "10171"] },
-            { name: "Chelsea/Greenwich Village", zips: ["10001", "10011", "10012", "10013", "10014", "10018", "10019", "10020", "10036"] },
-            { name: "Union Square/Lower Manhattan", zips: ["10002", "10003", "10004", "10005", "10006", "10007", "10009", "10038", "10048", "10280", "10282"] },
-            { name: "Long Island City/Astoria", zips: ["11101", "11102", "11103", "11104", "11105", "11106", "11109"] },
-            { name: "West Queens", zips: ["11368", "11369", "11370", "11372", "11373", "11377", "11378"] },
-            { name: "Flushing/Clearview", zips: ["11354", "11355", "11356", "11357", "11358", "11359", "11360"] },
-            { name: "Bayside/Little Neck/Fresh Meadows", zips: ["11361", "11362", "11363", "11364", "11365", "11366", "11367"] },
-            { name: "Ridgewood/Forest Hills", zips: ["11374", "11375", "11379", "11385"] },
-            { name: "Southwest Queens", zips: ["11414", "11415", "11416", "11417", "11418", "11419", "11420", "11421"] },
-            { name: "Jamaica", zips: ["11412", "11423", "11430", "11432", "11433", "11434", "11435", "11436"] },
-            { name: "Southeast Queens", zips: ["11001", "11004", "11005", "11040", "11411", "11413", "11422", "11426", "11427", "11428", "11429"] },
-            { name: "The Rockaways", zips: ["11691", "11692", "11693", "11694", "11697"] },
-            { name: "Northern Staten Island", zips: ["10301", "10302", "10303", "10304", "10305", "10310"] },
-            { name: "Southern Staten Island", zips: ["10306", "10307", "10308", "10309", "10312", "10314"] }
-        ];
- 
-        const input = document.getElementById('neighborhoodInput');
-        const suggestionsUl = document.getElementById('suggestions');
-        const selectedDiv = document.getElementById('selected');
-        const selectedZips = document.getElementById('selectedZips');
- 
-        input.addEventListener('input', (e) => {
-            const value = e.target.value.toLowerCase().trim();
-            suggestionsUl.innerHTML = '';
- 
-            if (value.length === 0) {
-                suggestionsUl.style.display = 'none';
-                return;
-            }
- 
-            const filtered = uhf34Data.filter(item => 
-                item.name.toLowerCase().startsWith(value) || 
-                item.zips.some(zip => zip.startsWith(value))
-            );
- 
-            if (filtered.length === 0) {
-                suggestionsUl.style.display = 'none';
-                return;
-            }
- 
-            filtered.forEach(item => {
-                const li = document.createElement('li');
-                li.style.padding = '0.75rem 1rem';
-                li.style.cursor = 'pointer';
-                li.style.borderBottom = '1px solid var(--color-border-tertiary)';
-                li.style.fontSize = '16px';
-                li.style.color = 'var(--color-text-primary)';
-                li.innerHTML = `<strong>${item.name}</strong> <span style="font-size: 13px; color: var(--color-text-secondary);">${item.zips.join(', ')}</span>`;
- 
-                li.addEventListener('mouseover', () => {
-                    li.style.backgroundColor = 'var(--color-background-tertiary)';
-                });
- 
-                li.addEventListener('mouseout', () => {
-                    li.style.backgroundColor = 'transparent';
-                });
- 
-                li.addEventListener('click', () => {
-                    input.value = item.name;
-                    suggestionsUl.style.display = 'none';
-                    selectedZips.textContent = item.zips.join(', ');
-                    selectedDiv.style.display = 'block';
-
-
-
-                        document.querySelectorAll(".printNeighborhood").forEach(el => {
-                            el.innerHTML = item.name;
-                        });
-                });
- 
-                suggestionsUl.appendChild(li);
+            li.addEventListener('mouseout', () => {
+                li.style.backgroundColor = 'transparent';
             });
- 
+
+            li.addEventListener('click', () => {
+                input.value = item.name;
+                suggestionsUl.style.display = 'none';
+                selectedZips.textContent = item.zips.join(', ');
+                selectedDiv.style.display = 'block';
+
+                document.querySelectorAll(".printNeighborhood").forEach(el => {
+                    el.innerHTML = item.name;
+                });
+            });
+
+            suggestionsUl.appendChild(li);
+        });
+
+        suggestionsUl.style.display = 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) {
+            suggestionsUl.style.display = 'none';
+        }
+    });
+
+    input.addEventListener('focus', () => {
+        if (input.value.length > 0) {
             suggestionsUl.style.display = 'block';
-        });
- 
-        document.addEventListener('click', (e) => {
-            if (e.target !== input) {
-                suggestionsUl.style.display = 'none';
-            }
-        });
- 
-        input.addEventListener('focus', () => {
-            if (input.value.length > 0) {
-                suggestionsUl.style.display = 'block';
-            }
-        });
+        }
+    });
     </script>
 
 </html>
