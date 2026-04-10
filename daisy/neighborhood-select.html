@@ -310,8 +310,10 @@
                 "encoding": {
                     "x": {"field": "rate", "type": "quantitative", "title": "Rate per 100,000"},
                     "y": {"field": "geocode", "type": "nominal", "axis": null, "sort": "-x"},
-                    "color": {
+                    "color": geocode ? {
                         "condition": {"test": `datum.geocode === '${geocode}'`, "value": "#2563eb"},
+                        "value": "#9ca3af"
+                    } : {
                         "value": "#9ca3af"
                     }
                 }
