@@ -2,27 +2,17 @@
 <html lang="en">
 
 <head>
-
     <title>Sandbox</title>
-
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!--FA kit -->
     <script src="https://kit.fontawesome.com/da9b183546.js" crossorigin="anonymous"></script>
-
-    <!-- Daisy UI / Tailwind -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <!-- Leaflet --> 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
-
-    <!-- Include topojson-client library -->
     <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
-
 </head>
 
 <style>
@@ -43,92 +33,69 @@
     margin: 0 0 5px; 
     color: #777; 
 }
-
 </style>
 
 <body class="bg-base-100">
-
     <div class="min-h-screen flex flex-col">
-        <!-- Header -->
         <header class="bg-base-200 shadow">
             <div class="max-w-2xl mx-auto px-4 py-6">
                 <h1 class="text-3xl font-bold">Sandbox</h1>
             </div>
         </header>
 
-        <!-- Main Content Area -->
         <main class="flex-1">
-            <div class="max-w-2xl mx-auto px-4 py-8 ">
+            <div class="max-w-2xl mx-auto px-4 py-8">
                 <div class="grid grid-cols-3 gap-2 mt-2">
-                
-                <!-- ZIP / Neighborhood Input -->
-                <div class="col-span-2">
-                    <p class="text-sm text-base-content/60 mb-2">Neighborhood:</p>
+                    <div class="col-span-2">
+                        <p class="text-sm text-base-content/60 mb-2">Neighborhood:</p>
+                        <div class="relative w-full border rounded-md">
+                            <input 
+                                type="text"
+                                id="neighborhoodInput" 
+                                placeholder="Enter a ZIP Code or neighborhood name"
+                                class="w-full px-3 py-3 text-base border border-base-100 rounded-md"
+                            />
+                            <ul 
+                                id="suggestions" 
+                                class="absolute top-full left-0 right-0 bg-base-200 border border-base-300 border-t-0 rounded-b-md list-none m-0 p-0 max-h-64 overflow-y-auto hidden z-10"
+                            ></ul>
+                        </div>
+                    </div>
 
-                    <div class="relative w-full border rounded-md">
-                        <input 
-                        type="text"
-                        id="neighborhoodInput" 
-                        placeholder="Enter a ZIP Code or neighborhood name"
-                        class="w-full px-3 py-3 text-base border border-base-100 rounded-md"
-                        />
-                        <ul 
-                        id="suggestions" 
-                        class="absolute top-full left-0 right-0 bg-base-200 border border-base-300 border-t-0 rounded-b-md list-none m-0 p-0 max-h-64 overflow-y-auto hidden z-10"
-                        ></ul>
+                    <div class="w-full">
+                        <p class="text-sm text-base-content/60 mb-2">Virus:</p>
+                        <select id="virus" name="virus" class="w-full px-3 py-4 text-base border border-base-400 rounded-md">
+                            <option value="COVID-19" selected>COVID-19</option>
+                            <option value="Influenza">Influenza</option>
+                            <option value="RSV">RSV</option>
+                        </select>
                     </div>
                 </div>
-
-
-                <!-- Virus Dropdown -->
-                <div class="w-full">
-                    <p class="text-sm text-base-content/60 mb-2">Virus:</p>
-
-                    <select id="virus" name="virus"
-                    class="w-full px-3 py-4 text-base border border-base-400 rounded-md">
-
-                    <option value="covid-19" selected>COVID-19</option>
-                    <option value="flu">Flu</option>
-                    <option value="rsv">RSV</option>
-
-                    </select>
-                </div>
-
-                </div>
-
-
 
                 <div class="grid grid-cols-3 gap-2 mt-2 z-0">
-                    
-                    <div class="col-span-2 border rounded-md z-0" id="map">
-                        Map
+                    <div class="col-span-2 border rounded-md z-0" id="map"></div>
+                    <div class="col-span-1 z-0">
+                        <div id="barChart" class="w-full h-full"></div>
                     </div>
-
-                    <div class="border rounded-md h-100 z-0 p-2">
-                        Bar chart
-                    </div>
-
                 </div>
 
- 
                 <div id="selected" class="mt-2 p-2 bg-base-200 rounded-lg hidden">
-
-
-                <p class="mb-4"><span class="font-bold">XX</span> <span class="printVirus font-bold">{virus}</span> cases <span>per 100,000 people</span> in <span class="printNeighborhood font-bold">{neighborhood}</span> (a total of <span  class="font-bold">YY</span> cases).</p>
-                <p class="mb-4">This is <span class="font-bold">higher</span> than the Citywide rate of <span  class="font-bold">ZZ</span> per 100,000 people.</p>
-
-                <div class="grid grid-cols-2">
-                    <p class="text-sm text-base-content/60 mb-2">Week ending: <span class="font-bold">MM/DD/YYYY</span></p>
-                    <p class="text-sm text-base-content/60 mb-1">ZIP codes: <span id="selectedZips" class="font-bold"></span></p>
-
-                </div>
-
-
+                    <p class="mb-4">
+                        <span class="font-bold" id="displayRate">XX</span> 
+                        <span class="printVirus font-bold">COVID-19</span> cases 
+                        <span>per 100,000 people</span> in 
+                        <span class="printNeighborhood font-bold">neighborhood</span> 
+                        (a total of <span class="font-bold" id="displayCount">YY</span> cases).
+                    </p>
+                    <p class="mb-4">This is <span class="font-bold">higher</span> than the Citywide rate of <span class="font-bold">ZZ</span> per 100,000 people.</p>
+                    <div class="grid grid-cols-2">
+                        <p class="text-sm text-base-content/60 mb-2">Week ending: <span class="font-bold">MM/DD/YYYY</span></p>
+                        <p class="text-sm text-base-content/60 mb-1">ZIP codes: <span id="selectedZips" class="font-bold"></span></p>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <!-- Footer -->
         <footer class="bg-base-200 shadow mt-8">
             <div class="max-w-2xl mx-auto px-4 py-6">
                 <p class="text-sm">Footer</p>
@@ -136,187 +103,223 @@
         </footer>
     </div>
 
-    <!-- Vega-Lite -->
     <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
 
     <script>
+        var topoJSON;
+        var uhf34Data;
+        var csvData;
+        var map;
+        var geoJSONLayer;
+        var selectedGeocode;
+        var selectedVirus = "COVID-19";
 
-        var selectedNeighborhood;
-        var topoJSON; 
-        var selectedVirus = "COVID-19"
-            document.querySelectorAll(".printVirus").forEach(el => {
-                el.innerHTML = selectedVirus;
-            });
-        
-        // First, initialize map and get topojson
         function initialize() {
-            var map = L.map('map').setView([40.715554,-74.0026642],10); // [Lat,Long],Zoom
-
-            L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=dwIJ8hO2KsTMegUfEpYE',{
+            map = L.map('map').setView([40.715554, -74.0026642], 10);
+            
+            L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=dwIJ8hO2KsTMegUfEpYE', {
                 attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
             }).addTo(map);
             
-        
+            L.control.scale({ metric: false, position: 'bottomleft' }).addTo(map);
 
-            L.control.scale({
-                metric: false,
-                position: 'bottomleft'
-            }).addTo(map)
+            Promise.all([
+                fetch('uhf34_data.csv').then(r => r.text()),
+                fetch('UHF34.topo.json').then(r => r.json())
+            ]).then(([csvText, topoData]) => {
+                // Parse CSV
+                const rows = csvText.trim().split(/\r?\n/);
+                csvData = rows.slice(1).map(row => {
+                    const values = row.split(',').map(v => v.trim());
+                    return {
+                        geocode: values[0],
+                        name: values[1],
+                        count: parseInt(values[2], 10),
+                        rate: parseFloat(values[3])
+                    };
+                });
 
-            fetch('UHF34.topo.json')
-                .then(response => response.json())
-                .then(topoData => {
+                // Parse TopoJSON
+                topoJSON = topoData;
+                const geojson = topojson.feature(topoData, topoData.objects[Object.keys(topoData.objects)[0]]);
 
-                    topoJSON = topoData
-                    console.log(topoJSON)
+                geoJSONLayer = L.geoJSON(geojson, {
+                    style: feature => ({
+                        color: feature.properties.GEOCODE === selectedGeocode ? "#2563eb" : "#555",
+                        weight: feature.properties.GEOCODE === selectedGeocode ? 3 : 1,
+                        fillOpacity: 0.1
+                    }),
+                    onEachFeature: (feature, layer) => {
+                        layer.on('click', () => selectNeighborhood(feature.properties.GEOCODE));
+                    }
+                }).addTo(map);
 
-                    const geojson = topojson.feature(topoData, topoData.objects[Object.keys(topoData.objects)[0]]);
+                uhf34Data = topoJSON.objects.collection.geometries.map(polygon => ({
+                    geocode: polygon.properties.GEOCODE,
+                    name: polygon.properties.GEONAME,
+                    zips: polygon.properties.ZIPS || []
+                }));
 
-                    L.geoJSON(geojson, {
-                        style: {
-                            color: "#555",
-                            weight: 1,
-                            fillOpacity: 0.1
-                        }
-                    }).addTo(map);
-                })
-                .catch(err => console.error("Error loading TopoJSON:", err));
+                setupUI();
+            });
+        }
 
-        }    
+        function selectNeighborhood(geocode) {
+            selectedGeocode = geocode;
+            const neighborhood = uhf34Data.find(n => n.geocode === geocode);
+            if (!neighborhood) return;
 
-        initialize()
+            document.getElementById('neighborhoodInput').value = neighborhood.name;
+            document.getElementById('suggestions').style.display = 'none';
+            updateUI(neighborhood);
+        }
 
+        function updateUI(neighborhood) {
+            if (!neighborhood) return;
 
-        // Next, use the topojson file to make the uhf34Data that can feed the menu (including GEOCODE)
+            // Update map styling
+            geoJSONLayer.setStyle(feature => ({
+                color: feature.properties.GEOCODE === selectedGeocode ? "#2563eb" : "#555",
+                weight: feature.properties.GEOCODE === selectedGeocode ? 3 : 1,
+                fillOpacity: 0.1
+            }));
 
+            // Zoom to neighborhood
+            zoomToGeocode(selectedGeocode);
 
-        // Then, initialize the menu stuff
+            // Find matching data
+            const matchingData = csvData.find(d => d.geocode === String(selectedGeocode) && d.name === selectedVirus);
 
+            // Update selected info panel
+            document.getElementById('selectedZips').textContent = neighborhood.zips.join(', ');
+            document.querySelectorAll('.printNeighborhood').forEach(el => {
+                el.innerHTML = neighborhood.name;
+            });
+            document.querySelectorAll('.printVirus').forEach(el => {
+                el.innerHTML = selectedVirus;
+            });
+            document.getElementById('displayRate').innerHTML = matchingData ? matchingData.rate : 'N/A';
+            document.getElementById('displayCount').innerHTML = matchingData ? matchingData.count : 'N/A';
+            document.getElementById('selected').style.display = 'block';
 
+            // Update chart
+            drawChart(csvData, selectedVirus, String(selectedGeocode));
+        }
 
-        // Event listener on Virus select
-        document.getElementById("virus").addEventListener("change", function (e) {
-            // Make sure the target is the select
-            if (e.target.name === "virus") {
-                const selectedVirus = e.target.value;
-                console.log(selectedVirus);
-                // do whatever else you need with selectedVirus
-                document.querySelectorAll(".printVirus").forEach(el => {
+        function zoomToGeocode(geocode) {
+            const geojson = topojson.feature(topoJSON, topoJSON.objects.collection);
+            const selectedFeature = geojson.features.find(f => f.properties.GEOCODE === geocode);
+            
+            if (selectedFeature) {
+                const bounds = L.geoJSON(selectedFeature).getBounds();
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+
+        function setupUI() {
+            const input = document.getElementById('neighborhoodInput');
+            const suggestionsUl = document.getElementById('suggestions');
+
+            input.addEventListener('input', (e) => {
+                const value = e.target.value.toLowerCase().trim();
+                suggestionsUl.innerHTML = '';
+
+                if (value.length === 0) {
+                    suggestionsUl.style.display = 'none';
+                    return;
+                }
+
+                const filtered = uhf34Data.filter(item => 
+                    item.name.toLowerCase().includes(value) || 
+                    item.zips.some(zip => zip.startsWith(value))
+                );
+
+                if (filtered.length === 0) {
+                    suggestionsUl.style.display = 'none';
+                    return;
+                }
+
+                filtered.forEach(item => {
+                    const li = document.createElement('li');
+                    li.style.padding = '0.75rem 1rem';
+                    li.style.cursor = 'pointer';
+                    li.style.borderBottom = '1px solid lightgray';
+                    li.style.fontSize = '16px';
+                    li.innerHTML = `<strong>${item.name}</strong> <span style="font-size: 13px;">${item.zips.join(', ')}</span>`;
+
+                    li.addEventListener('click', () => {
+                        selectNeighborhood(item.geocode);
+                    });
+
+                    li.addEventListener('mouseover', () => {
+                        li.style.backgroundColor = 'var(--color-background-tertiary)';
+                    });
+
+                    li.addEventListener('mouseout', () => {
+                        li.style.backgroundColor = 'transparent';
+                    });
+
+                    suggestionsUl.appendChild(li);
+                });
+
+                suggestionsUl.style.display = 'block';
+            });
+
+            document.addEventListener('click', (e) => {
+                if (e.target !== input) {
+                    suggestionsUl.style.display = 'none';
+                }
+            });
+
+            input.addEventListener('focus', () => {
+                if (input.value.length > 0) {
+                    suggestionsUl.style.display = 'block';
+                }
+            });
+
+            document.getElementById('virus').addEventListener('change', (e) => {
+                selectedVirus = e.target.value;
+                document.querySelectorAll('.printVirus').forEach(el => {
                     el.innerHTML = selectedVirus;
                 });
-            }
-        });
-
-
-    // FEED AUTOCOMPLETE FORM
-    const uhf34Data = [
-        { name: "Kingsbridge and Riverdale", zips: ["10463", "10471"] },
-        { name: "The Northeast Bronx", zips: ["10466", "10469", "10470", "10475"] },
-        { name: "Fordham/Bronx Park", zips: ["10458", "10467", "10468"] },
-        { name: "Pelham/Throgs Neck", zips: ["10461", "10462", "10464", "10465", "10472", "10473"] },
-        { name: "The South Bronx", zips: ["10451", "10452", "10453", "10454", "10455", "10456", "10457", "10459", "10460", "10474"] },
-        { name: "Greenpoint", zips: ["11211", "11222"] },
-        { name: "Downtown Brooklyn/Heights/Slope", zips: ["11201", "11205", "11215", "11217", "11231"] },
-        { name: "Bedford Stuyvesant/Crown Heights", zips: ["11212", "11213", "11216", "11233", "11238"] },
-        { name: "East New York/New Lots", zips: ["11207", "11208"] },
-        { name: "Sunset Park", zips: ["11220", "11232"] },
-        { name: "Borough Park", zips: ["11204", "11218", "11219", "11230"] },
-        { name: "Flatbush", zips: ["11203", "11210", "11225", "11226"] },
-        { name: "Canarsie and Flatlands", zips: ["11234", "11236", "11239"] },
-        { name: "Bay Ridge/Bensonhurst", zips: ["11209", "11214", "11228"] },
-        { name: "Coney Island", zips: ["11223", "11224", "11229", "11235"] },
-        { name: "Williamsburg/Bushwick", zips: ["11206", "11221", "11237"] },
-        { name: "Washington Heights/Inwood", zips: ["10031", "10032", "10033", "10034", "10040"] },
-        { name: "Central Harlem", zips: ["10026", "10027", "10030", "10037", "10039"] },
-        { name: "East Harlem", zips: ["10029", "10035"] },
-        { name: "Upper West Side", zips: ["10023", "10024", "10025", "10069"] },
-        { name: "Upper East Side/Gramercy", zips: ["10010", "10016", "10017", "10021", "10022", "10028", "10044", "10065", "10075", "10128", "10162", "10165", "10170", "10171"] },
-        { name: "Chelsea/Greenwich Village", zips: ["10001", "10011", "10012", "10013", "10014", "10018", "10019", "10020", "10036"] },
-        { name: "Union Square/Lower Manhattan", zips: ["10002", "10003", "10004", "10005", "10006", "10007", "10009", "10038", "10048", "10280", "10282"] },
-        { name: "Long Island City/Astoria", zips: ["11101", "11102", "11103", "11104", "11105", "11106", "11109"] },
-        { name: "West Queens", zips: ["11368", "11369", "11370", "11372", "11373", "11377", "11378"] },
-        { name: "Flushing/Clearview", zips: ["11354", "11355", "11356", "11357", "11358", "11359", "11360"] },
-        { name: "Bayside/Little Neck/Fresh Meadows", zips: ["11361", "11362", "11363", "11364", "11365", "11366", "11367"] },
-        { name: "Ridgewood/Forest Hills", zips: ["11374", "11375", "11379", "11385"] },
-        { name: "Southwest Queens", zips: ["11414", "11415", "11416", "11417", "11418", "11419", "11420", "11421"] },
-        { name: "Jamaica", zips: ["11412", "11423", "11430", "11432", "11433", "11434", "11435", "11436"] },
-        { name: "Southeast Queens", zips: ["11001", "11004", "11005", "11040", "11411", "11413", "11422", "11426", "11427", "11428", "11429"] },
-        { name: "The Rockaways", zips: ["11691", "11692", "11693", "11694", "11697"] },
-        { name: "Northern Staten Island", zips: ["10301", "10302", "10303", "10304", "10305", "10310"] },
-        { name: "Southern Staten Island", zips: ["10306", "10307", "10308", "10309", "10312", "10314"] }
-    ];
-
-    const input = document.getElementById('neighborhoodInput');
-    const suggestionsUl = document.getElementById('suggestions');
-    const selectedDiv = document.getElementById('selected');
-    const selectedZips = document.getElementById('selectedZips');
-
-    input.addEventListener('input', (e) => {
-        const value = e.target.value.toLowerCase().trim();
-        suggestionsUl.innerHTML = '';
-
-        if (value.length === 0) {
-            suggestionsUl.style.display = 'none';
-            return;
-        }
-
-        const filtered = uhf34Data.filter(item => 
-            item.name.toLowerCase().startsWith(value) || 
-            item.zips.some(zip => zip.startsWith(value))
-        );
-
-        if (filtered.length === 0) {
-            suggestionsUl.style.display = 'none';
-            return;
-        }
-
-        filtered.forEach(item => {
-            const li = document.createElement('li');
-            li.style.padding = '0.75rem 1rem';
-            li.style.cursor = 'pointer';
-            li.style.borderBottom = '1px solid lightgray';
-            li.style.fontSize = '16px';
-            li.style.color = 'var(--color-text-primary)';
-            li.innerHTML = `<strong>${item.name}</strong> <span style="font-size: 13px;">${item.zips.join(', ')}</span>`;
-
-            li.addEventListener('mouseover', () => {
-                li.style.backgroundColor = 'var(--color-background-tertiary)';
+                
+                if (selectedGeocode) {
+                    const neighborhood = uhf34Data.find(n => n.geocode === selectedGeocode);
+                    updateUI(neighborhood);
+                } else {
+                    drawChart(csvData, selectedVirus, null); // Draw chart without geocode highlight
+                }
             });
 
-            li.addEventListener('mouseout', () => {
-                li.style.backgroundColor = 'transparent';
-            });
-
-            li.addEventListener('click', () => {
-                input.value = item.name;
-                suggestionsUl.style.display = 'none';
-                selectedZips.textContent = item.zips.join(', ');
-                selectedDiv.style.display = 'block';
-
-                document.querySelectorAll(".printNeighborhood").forEach(el => {
-                    el.innerHTML = item.name;
-                });
-            });
-
-            suggestionsUl.appendChild(li);
-        });
-
-        suggestionsUl.style.display = 'block';
-    });
-
-    document.addEventListener('click', (e) => {
-        if (e.target !== input) {
-            suggestionsUl.style.display = 'none';
+            // Draw initial chart on load
+            drawChart(csvData, selectedVirus, null);
         }
-    });
 
-    input.addEventListener('focus', () => {
-        if (input.value.length > 0) {
-            suggestionsUl.style.display = 'block';
+        function drawChart(data, virus, geocode) {
+            const spec = {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "width": "container",
+                "height": "container",
+                "data": { "values": data },
+                "transform": [
+                    {"filter": `datum.name === '${virus}'`}
+                ],
+                "mark": "bar",
+                "encoding": {
+                    "x": {"field": "rate", "type": "quantitative", "title": "Rate per 100,000"},
+                    "y": {"field": "geocode", "type": "nominal", "axis": null, "sort": "-x"},
+                    "color": {
+                        "condition": {"test": `datum.geocode === '${geocode}'`, "value": "#2563eb"},
+                        "value": "#9ca3af"
+                    }
+                }
+            };
+
+            vegaEmbed('#barChart', spec, { actions: false });
         }
-    });
+
+        initialize();
     </script>
-
 </html>
