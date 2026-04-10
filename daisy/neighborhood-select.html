@@ -33,6 +33,35 @@
     margin: 0 0 5px; 
     color: #777; 
 }
+
+.legend {
+    padding: 10px 15px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    font: 12px/16px Arial, Helvetica, sans-serif;
+}
+
+.legend-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
 </style>
 
 <body class="bg-base-100">
@@ -113,6 +142,7 @@
         var csvData;
         var map;
         var geoJSONLayer;
+        var legendControl;
         var selectedGeocode;
         var selectedVirus = "COVID-19";
 
@@ -146,11 +176,7 @@
                 const geojson = topojson.feature(topoData, topoData.objects[Object.keys(topoData.objects)[0]]);
 
                 geoJSONLayer = L.geoJSON(geojson, {
-                    style: feature => ({
-                        color: feature.properties.GEOCODE === selectedGeocode ? "#2563eb" : "#555",
-                        weight: feature.properties.GEOCODE === selectedGeocode ? 3 : 1,
-                        fillOpacity: 0.1
-                    }),
+                    style: getFeatureStyle,
                     onEachFeature: (feature, layer) => {
                         layer.on('click', () => selectNeighborhood(feature.properties.GEOCODE));
                     }
@@ -163,6 +189,7 @@
                 }));
 
                 setupUI();
+                updateChoropleth();
             });
         }
 
@@ -176,15 +203,25 @@
             updateUI(neighborhood);
         }
 
+        function getFeatureStyle(feature) {
+            const geocode = String(feature.properties.GEOCODE);
+            const data = getDataForGeocode(geocode);
+            const rate = data ? data.rate : null;
+            const isSelected = geocode === String(selectedGeocode);
+
+            return {
+                color: isSelected ? '#1e40af' : '#555',
+                weight: isSelected ? 3 : 1,
+                fillColor: getColorForRate(rate),
+                fillOpacity: 0.7
+            };
+        }
+
         function updateUI(neighborhood) {
             if (!neighborhood) return;
 
-            // Update map styling
-            geoJSONLayer.setStyle(feature => ({
-                color: feature.properties.GEOCODE === selectedGeocode ? "#2563eb" : "#555",
-                weight: feature.properties.GEOCODE === selectedGeocode ? 3 : 1,
-                fillOpacity: 0.1
-            }));
+            // Update map styling with choropleth
+            updateChoropleth();
 
             // Zoom to neighborhood
             zoomToGeocode(selectedGeocode);
@@ -208,6 +245,58 @@
             drawChart(csvData, selectedVirus, String(selectedGeocode));
         }
 
+        function getDataForGeocode(geocode) {
+            return csvData.find(d => d.geocode === geocode && d.name === selectedVirus);
+        }
+
+        function getRateStats() {
+            const virusData = csvData.filter(d => d.name === selectedVirus);
+            const rates = virusData.map(d => d.rate).filter(r => r !== null && r !== undefined);
+            return {
+                min: Math.min(...rates),
+                max: Math.max(...rates)
+            };
+        }
+
+        function getColorForRate(rate) {
+            const stats = getRateStats();
+            if (rate === null || rate === undefined) return '#e5e7eb'; // gray for missing data
+            
+            const normalized = (rate - stats.min) / (stats.max - stats.min);
+            
+            // Viridis color scale: yellow (low) to purple (high)
+            const colors = [
+                { pos: 0.0, r: 253, g: 231, b: 37 },      // #fde725 yellow
+                { pos: 0.25, r: 253, g: 231, b: 37 },     // #fde725 yellow
+                { pos: 0.5, r: 33, g: 145, b: 140 },      // #218c8d teal
+                { pos: 0.75, r: 59, g: 82, b: 139 },      // #3b528b blue
+                { pos: 1.0, r: 68, g: 1, b: 84 }          // #440154 dark purple
+            ];
+            
+            let color1 = colors[0];
+            let color2 = colors[1];
+            
+            for (let i = 0; i < colors.length - 1; i++) {
+                if (normalized >= colors[i].pos && normalized <= colors[i + 1].pos) {
+                    color1 = colors[i];
+                    color2 = colors[i + 1];
+                    break;
+                }
+            }
+            
+            const localNorm = (normalized - color1.pos) / (color2.pos - color1.pos);
+            const r = Math.round(color1.r + (color2.r - color1.r) * localNorm);
+            const g = Math.round(color1.g + (color2.g - color1.g) * localNorm);
+            const b = Math.round(color1.b + (color2.b - color1.b) * localNorm);
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function updateChoropleth() {
+            if (!geoJSONLayer) return;
+            geoJSONLayer.setStyle(getFeatureStyle);
+        }
+
         function zoomToGeocode(geocode) {
             const geojson = topojson.feature(topoJSON, topoJSON.objects.collection);
             const selectedFeature = geojson.features.find(f => f.properties.GEOCODE === geocode);
@@ -216,6 +305,45 @@
                 const bounds = L.geoJSON(selectedFeature).getBounds();
                 map.fitBounds(bounds, { padding: [50, 50] });
             }
+        }
+
+        function addLegend() {
+            const LegendControl = L.Control.extend({
+                options: {
+                    position: 'topright'
+                },
+                onAdd: function(map) {
+                    const div = L.DomUtil.create('div', 'legend');
+                    div.innerHTML = `
+                        <div class="legend-title">Rate per 100,000</div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #440154;"></div>
+                            <span>Low</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3b528b;"></div>
+                            <span></span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #218c8d;"></div>
+                            <span>Medium</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #fde725;"></div>
+                            <span>High</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #e5e7eb;"></div>
+                            <span>No Data</span>
+                        </div>
+                    `;
+                    L.DomEvent.disableClickPropagation(div);
+                    return div;
+                }
+            });
+            
+            legendControl = new LegendControl();
+            legendControl.addTo(map);
         }
 
         function setupUI() {
@@ -285,11 +413,14 @@
                     el.innerHTML = selectedVirus;
                 });
                 
+                // Update choropleth colors for new virus
+                updateChoropleth();
+                
                 if (selectedGeocode) {
                     const neighborhood = uhf34Data.find(n => n.geocode === selectedGeocode);
                     updateUI(neighborhood);
                 } else {
-                    drawChart(csvData, selectedVirus, null); // Draw chart without geocode highlight
+                    drawChart(csvData, selectedVirus, null);
                 }
             });
 
@@ -298,24 +429,51 @@
         }
 
         function drawChart(data, virus, geocode) {
+            // Get min/max rates for color scaling
+            const virusData = data.filter(d => d.name === virus);
+            const rates = virusData.map(d => d.rate).filter(r => r !== null && r !== undefined);
+            const minRate = Math.min(...rates);
+            const maxRate = Math.max(...rates);
+
             const spec = {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "width": "container",
                 "height": "container",
                 "data": { "values": data },
                 "transform": [
-                    {"filter": `datum.name === '${virus}'`}
+                    {"filter": `datum.name === '${virus}'`},
+                    {
+                        "calculate": `(datum.rate - ${minRate}) / (${maxRate} - ${minRate})`,
+                        "as": "normalized_rate"
+                    }
                 ],
-                "mark": "bar",
+                "mark": {
+                    "type": "bar",
+                    "tooltip": true
+                },
                 "encoding": {
                     "x": {"field": "rate", "type": "quantitative", "title": "Rate per 100,000"},
                     "y": {"field": "geocode", "type": "nominal", "axis": null, "sort": "-x"},
-                    "color": geocode ? {
-                        "condition": {"test": `datum.geocode === '${geocode}'`, "value": "#2563eb"},
-                        "value": "#9ca3af"
+                    "color": {
+                        "field": "normalized_rate",
+                        "type": "quantitative",
+                        "scale": {
+                            "scheme": "viridis",
+                            "reverse": true
+                        },
+                        "legend": null
+                    },
+                    "stroke": geocode ? {
+                        "condition": {"test": `datum.geocode === '${geocode}'`, "value": "#1e40af", "strokeWidth": 3},
+                        "value": null
                     } : {
-                        "value": "#9ca3af"
-                    }
+                        "value": null
+                    },
+                    "tooltip": [
+                        {"field": "geocode", "type": "nominal", "title": "Geocode"},
+                        {"field": "rate", "type": "quantitative", "title": "Rate per 100,000", "format": ".2f"},
+                        {"field": "count", "type": "quantitative", "title": "Case Count"}
+                    ]
                 }
             };
 
