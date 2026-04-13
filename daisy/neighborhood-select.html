@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
     <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
 
 <style>
@@ -259,37 +260,13 @@
         }
 
         function getColorForRate(rate) {
-            const stats = getRateStats();
             if (rate === null || rate === undefined) return '#e5e7eb'; // gray for missing data
             
+            const stats = getRateStats();
             const normalized = (rate - stats.min) / (stats.max - stats.min);
             
-            // Viridis color scale: yellow (low) to purple (high)
-            const colors = [
-                { pos: 0.0, r: 253, g: 231, b: 37 },      // #fde725 yellow
-                { pos: 0.25, r: 253, g: 231, b: 37 },     // #fde725 yellow
-                { pos: 0.5, r: 33, g: 145, b: 140 },      // #218c8d teal
-                { pos: 0.75, r: 59, g: 82, b: 139 },      // #3b528b blue
-                { pos: 1.0, r: 68, g: 1, b: 84 }          // #440154 dark purple
-            ];
-            
-            let color1 = colors[0];
-            let color2 = colors[1];
-            
-            for (let i = 0; i < colors.length - 1; i++) {
-                if (normalized >= colors[i].pos && normalized <= colors[i + 1].pos) {
-                    color1 = colors[i];
-                    color2 = colors[i + 1];
-                    break;
-                }
-            }
-            
-            const localNorm = (normalized - color1.pos) / (color2.pos - color1.pos);
-            const r = Math.round(color1.r + (color2.r - color1.r) * localNorm);
-            const g = Math.round(color1.g + (color2.g - color1.g) * localNorm);
-            const b = Math.round(color1.b + (color2.b - color1.b) * localNorm);
-            
-            return `rgb(${r}, ${g}, ${b})`;
+            // Use D3's interpolateViridis to get the color
+            return d3.interpolateViridis(1 - normalized);
         }
 
         function updateChoropleth() {
