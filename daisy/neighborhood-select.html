@@ -63,6 +63,31 @@
     border-radius: 3px;
     border: 1px solid #ccc;
 }
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+#resetButton {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    transition: color 0.2s;
+    z-index: 5;
+}
+
+#resetButton:hover {
+    color: #555;
+}
 </style>
 
 <body class="bg-base-100">
@@ -78,13 +103,16 @@
                 <div class="grid grid-cols-3 gap-2 mt-2">
                     <div class="col-span-2">
                         <p class="text-sm text-base-content/60 mb-2">Neighborhood:</p>
-                        <div class="relative w-full border rounded-md">
+                        <div class="input-wrapper border rounded-md">
                             <input 
                                 type="text"
                                 id="neighborhoodInput" 
                                 placeholder="Enter a ZIP Code or neighborhood name"
-                                class="w-full px-3 py-3 text-base border border-base-100 rounded-md"
+                                class="w-full px-3 py-3 text-base border border-base-100 rounded-md pr-12"
                             />
+                            <button id="resetButton" title="Clear selection">
+                                <i class="fas fa-times"></i>
+                            </button>
                             <ul 
                                 id="suggestions" 
                                 class="absolute top-full left-0 right-0 bg-base-200 border border-base-300 border-t-0 rounded-b-md list-none m-0 p-0 max-h-64 overflow-y-auto hidden z-10"
@@ -201,7 +229,29 @@
 
             document.getElementById('neighborhoodInput').value = neighborhood.name;
             document.getElementById('suggestions').style.display = 'none';
+            updateResetButtonVisibility();
             updateUI(neighborhood);
+        }
+
+        function resetSelection() {
+            selectedGeocode = null;
+            document.getElementById('neighborhoodInput').value = '';
+            document.getElementById('suggestions').style.display = 'none';
+            updateResetButtonVisibility();
+            document.getElementById('selected').style.display = 'none';
+            
+            // Reset map and chart
+            updateChoropleth();
+            drawChart(csvData, selectedVirus, null);
+            
+            // Reset map zoom
+            map.setView([40.715554, -74.0026642], 10);
+        }
+
+        function updateResetButtonVisibility() {
+            const resetBtn = document.getElementById('resetButton');
+            const input = document.getElementById('neighborhoodInput');
+            resetBtn.style.display = input.value.trim() ? 'block' : 'none';
         }
 
         function getFeatureStyle(feature) {
@@ -326,10 +376,12 @@
         function setupUI() {
             const input = document.getElementById('neighborhoodInput');
             const suggestionsUl = document.getElementById('suggestions');
+            const resetBtn = document.getElementById('resetButton');
 
             input.addEventListener('input', (e) => {
                 const value = e.target.value.toLowerCase().trim();
                 suggestionsUl.innerHTML = '';
+                updateResetButtonVisibility();
 
                 if (value.length === 0) {
                     suggestionsUl.style.display = 'none';
@@ -373,7 +425,7 @@
             });
 
             document.addEventListener('click', (e) => {
-                if (e.target !== input) {
+                if (e.target !== input && e.target !== resetBtn) {
                     suggestionsUl.style.display = 'none';
                 }
             });
@@ -383,6 +435,8 @@
                     suggestionsUl.style.display = 'block';
                 }
             });
+
+            resetBtn.addEventListener('click', resetSelection);
 
             document.getElementById('virus').addEventListener('change', (e) => {
                 selectedVirus = e.target.value;
@@ -431,6 +485,12 @@
                 "encoding": {
                     "x": {"field": "rate", "type": "quantitative", "title": "Rate per 100,000"},
                     "y": {"field": "geocode", "type": "nominal", "axis": null, "sort": "-x"},
+                    "opacity": geocode ? {
+                        "condition": {"test": `datum.geocode === '${geocode}'`, "value": 1},
+                        "value": 0.5
+                    } : {
+                        "value": 1
+                    },
                     "color": {
                         "field": "normalized_rate",
                         "type": "quantitative",
