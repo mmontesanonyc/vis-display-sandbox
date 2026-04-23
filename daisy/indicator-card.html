@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>Sandbox</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!--FA kit -->
+    <script src="https://kit.fontawesome.com/da9b183546.js" crossorigin="anonymous"></script>
+
+    <!-- Daisy UI / Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Leaflet --> 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js" integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
+
+</head>
+
+<body class="bg-base-100">
+
+    <div class="min-h-screen flex flex-col">
+
+
+        <!-- Header -->
+        <header class="bg-base-200 shadow">
+            <div class="max-w-2xl mx-auto px-4 py-6">
+                <h1 class="text-3xl font-bold">Sandbox</h1>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1">
+
+            <div class="max-w-2xl mx-auto py-8 ">
+
+                  <div class="card my-6 bg-base-100 shadow-xl">
+
+                    <!-- Header -->
+                    <div class="card-title flex justify-between items-center p-2 border-b">
+                        <h2 class="text-lg font-bold">Pedestrian injury hospitalizations</h2>
+
+                        <div class="flex items-center gap-3">
+                            <span id="labelBar" class="label-text text-xs">Chart</span>
+
+                            <input 
+                                type="checkbox" 
+                                class="toggle toggle-primary mx-0" 
+                                id="viewToggle"
+                            />
+
+                            <span id="labelMap" class="label-text text-xs ml-0">Map</span>
+                            </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="card-body pt-1 pb-0 px-1" style="width: 100%">
+                        <div id="chart" style="width: 95%; min-height: 150px;">
+                        chart
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="flex justify-between items-center p-4 border-t">
+                    <div class="flex gap-2" style="color:rgb(88, 88, 88);">
+                        <p class="text-xs pr-4"><span class="font-bold">Source:</span> New York State Department of Health, Statewide Planning and Research Cooperative System (SPARCS) (2012-2014)</p>
+
+                    </div>
+                        <!-- Dropdown -->
+                        <div class="dropdown dropdown-end">
+                            <label tabindex="0" class="btn btn-md btn-ghost btn-circle border">
+                                <i class="fas fa-cog"></i>
+                            </label>
+
+                            <ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box shadow w-44 mt-2">
+                            <li><a><i class="fas fa-save mr-1"></i>Save chart</a></li>
+                            <li><a><i class="fas fa-download mr-1"></i>Download data</a></li>
+                            <li><a><i class="fas fa-info-circle mr-1"></i>Data notes</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+                <div class="card mt-12 my-6 bg-base-100 shadow-xl">
+
+                    <!-- Header -->
+                    <div class="card-title flex items-center p-2 border-b">
+                        <h2 class="text-lg font-bold">Pedestrian injury hospitalizations</h2>
+
+                        <button class="btn btn-md btn-circle border ml-auto">
+                            <i class="fas fa-save"></i>
+                        </button>
+
+                        <button class="btn btn-md btn-circle border">
+                            <i class="fas fa-download"></i>
+                        </button>
+
+                        <button class="btn btn-md btn-circle border">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+
+
+                    </div>
+
+                    <!-- Body -->
+                    <div class="card-body pt-1 pb-0 px-1" style="width: 100%">
+                        <div id="chart2" style="width: 95%; min-height: 150px;">
+                        chart
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="flex justify-between items-center p-4 border-t">
+                    <div class="flex gap-2" style="color:rgb(88, 88, 88);">
+                        <p class="text-xs"><span class="font-bold">Source:</span> New York State Department of Health, Statewide Planning and Research Cooperative System (SPARCS) (2012-2014)</p>
+
+                    </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-base-200 shadow mt-8">
+            <div class="max-w-2xl mx-auto px-4 py-6">
+                <p class="text-sm">Footer</p>
+            </div>
+        </footer>
+
+
+
+        
+
+
+    </div>
+
+</body>
+
+    <!-- Vega-Lite -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
+
+    <script>
+        const toggle = document.getElementById('viewToggle');
+        const bar = document.getElementById('labelBar');
+        const map = document.getElementById('labelMap');
+
+        toggle.addEventListener('change', () => {
+            if (toggle.checked) {
+            map.classList.add('font-semibold');
+            map.classList.remove('opacity-50');
+            bar.classList.remove('font-semibold');
+            bar.classList.add('opacity-50');
+            } else {
+            bar.classList.add('font-semibold');
+            bar.classList.remove('opacity-50');
+            map.classList.remove('font-semibold');
+            map.classList.add('opacity-50');
+            }
+        });
+</script>
+
+    <script>
+
+
+        var spec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": {
+    "text": "Lorem ipsum indicator name full name",
+    "subtitlePadding": 10,
+    "fontWeight": "normal",
+    "anchor": "start",
+    "fontSize": 0,
+    "font": "sans-serif",
+    "baseline": "top",
+    "subtitle": "Age-adjusted rate (per 100,000)",
+    "subtitleFontSize": 13
+  },
+  "data": {
+    "values": [
+      {
+        "MeasureID": 674,
+        "GeoID": 1,
+        "GeoType": "Citywide",
+        "TimePeriodID": 45,
+        "Value": 88.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "88.4",
+        "GeoRank": 1,
+        "GeoTypeDesc": "Citywide",
+        "GeoTypeShortDesc": "Citywide",
+        "Geography": "Citywide",
+        "Lat": 40.6447,
+        "Long": -73.9479,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 2,
+        "GeoType": "Borough",
+        "TimePeriodID": 45,
+        "Value": 95.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "101.4",
+        "GeoRank": 1,
+        "GeoTypeDesc": "Borough",
+        "GeoTypeShortDesc": "Borough",
+        "Geography": "Brooklyn",
+        "Lat": 40.6447,
+        "Long": -73.9479,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 101,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 83.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "83.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Financial District (CD1)",
+        "Lat": 40.7074,
+        "Long": -74.012,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 102,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 44.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "44.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Greenwich Village and Soho (CD2)",
+        "Lat": 40.7298,
+        "Long": -74.0016,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 103,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 150.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "150.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Lower East Side and Chinatown (CD3)",
+        "Lat": 40.7196,
+        "Long": -73.9855,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 104,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 46.9,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "46.9",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Clinton and Chelsea (CD4)",
+        "Lat": 40.7554,
+        "Long": -73.9975,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 105,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 43.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "43.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Midtown (CD5)",
+        "Lat": 40.7523,
+        "Long": -73.9841,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 106,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 62.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "62.4",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Stuyvesant Town and Turtle Bay (CD6)",
+        "Lat": 40.7447,
+        "Long": -73.9746,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 107,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 31.2,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "31.2",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Upper West Side (CD7)",
+        "Lat": 40.7872,
+        "Long": -73.9761,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 108,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 47.8,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "47.8",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Upper East Side (CD8)",
+        "Lat": 40.7716,
+        "Long": -73.9557,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 109,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 47.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "47.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Morningside Heights and Hamilton Heights (CD9)",
+        "Lat": 40.8181,
+        "Long": -73.955,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 110,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 70.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "70.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Central Harlem (CD10)",
+        "Lat": 40.8137,
+        "Long": -73.9447,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 111,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 132.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "132.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "East Harlem (CD11)",
+        "Lat": 40.7949,
+        "Long": -73.935,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 112,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 67.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "67.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Washington Heights and Inwood (CD12)",
+        "Lat": 40.8551,
+        "Long": -73.9315,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 201,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 104.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "104.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Mott Haven and Melrose (CD1)",
+        "Lat": 40.8109,
+        "Long": -73.9165,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 202,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 81.2,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "81.2",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Hunts Point and Longwood (CD2)",
+        "Lat": 40.8133,
+        "Long": -73.8879,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 203,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 76.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "76.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Morrisania and Crotona (CD3)",
+        "Lat": 40.8326,
+        "Long": -73.8987,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 204,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 71.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "71.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Highbridge and Concourse (CD4)",
+        "Lat": 40.8338,
+        "Long": -73.9208,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 205,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 60.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "60.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Fordham and University Heights (CD5)",
+        "Lat": 40.8527,
+        "Long": -73.9096,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 206,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 72.9,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "72.9",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Belmont and East Tremont (CD6)",
+        "Lat": 40.8496,
+        "Long": -73.8875,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 207,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 60.1,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "60.1",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Kingsbridge Heights and Bedford (CD7)",
+        "Lat": 40.871,
+        "Long": -73.8915,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 208,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 56.8,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "56.8",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Riverdale and Fieldston (CD8)",
+        "Lat": 40.8905,
+        "Long": -73.9063,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 209,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 61.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "61.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Parkchester and Soundview (CD9)",
+        "Lat": 40.8248,
+        "Long": -73.8617,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 210,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 45.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "45.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Throgs Neck and Co-op City (CD10)",
+        "Lat": 40.8386,
+        "Long": -73.8218,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 211,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 61.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "61.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Morris Park and Bronxdale (CD11)",
+        "Lat": 40.8561,
+        "Long": -73.8528,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 212,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 51.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "51.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Williamsbridge and Baychester (CD12)",
+        "Lat": 40.8863,
+        "Long": -73.8515,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 301,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 90.1,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "90.1",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Greenpoint and Williamsburg (CD1)",
+        "Lat": 40.7168,
+        "Long": -73.9472,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 302,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 91.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "91.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Fort Greene and Brooklyn Heights (CD2)",
+        "Lat": 40.6935,
+        "Long": -73.9787,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 303,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 150.9,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "150.9",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Bedford Stuyvesant (CD3)",
+        "Lat": 40.6877,
+        "Long": -73.9406,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 304,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 150.9,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "150.9",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Bushwick (CD4)",
+        "Lat": 40.6945,
+        "Long": -73.9168,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 305,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 101.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "101.4",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "East New York and Starrett City (CD5)",
+        "Lat": 40.6685,
+        "Long": -73.8797,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 306,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 148.1,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "148.1",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Park Slope and Carroll Gardens (CD6)",
+        "Lat": 40.6764,
+        "Long": -73.9945,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 307,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 133.2,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "133.2",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Sunset Park (CD7)",
+        "Lat": 40.652,
+        "Long": -74.0011,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 308,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 120.9,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "120.9",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Crown Heights and Prospect Heights (CD8)",
+        "Lat": 40.6744,
+        "Long": -73.9466,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 309,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 97.8,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "97.8",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "South Crown Heights and Lefferts Gardens (CD9)",
+        "Lat": 40.6628,
+        "Long": -73.9469,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 310,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 72,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "72.0",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Bay Ridge and Dyker Heights (CD10)",
+        "Lat": 40.6233,
+        "Long": -74.0235,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 311,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 75.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "75.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Bensonhurst (CD11)",
+        "Lat": 40.6072,
+        "Long": -73.9936,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 312,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 70.8,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "70.8",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Borough Park (CD12)",
+        "Lat": 40.6312,
+        "Long": -73.9833,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 313,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 106.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "106.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Coney Island (CD13)",
+        "Lat": 40.5806,
+        "Long": -73.9821,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 314,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 87.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "87.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Flatbush and Midwood (CD14)",
+        "Lat": 40.6318,
+        "Long": -73.9591,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 315,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 86.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "86.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Sheepshead Bay (CD15)",
+        "Lat": 40.5945,
+        "Long": -73.9499,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 316,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 103.1,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "103.1",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Brownsville (CD16)",
+        "Lat": 40.6682,
+        "Long": -73.9109,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 317,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 76.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "76.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "East Flatbush (CD17)",
+        "Lat": 40.648,
+        "Long": -73.9338,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 318,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 61.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "61.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Flatlands and Canarsie (CD18)",
+        "Lat": 40.624,
+        "Long": -73.914,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 401,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 99.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "99.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Long Island City and Astoria (CD1)",
+        "Lat": 40.7702,
+        "Long": -73.9134,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 402,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 80.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "80.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Woodside and Sunnyside (CD2)",
+        "Lat": 40.7405,
+        "Long": -73.923,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 403,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 147.8,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "147.8",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Jackson Heights (CD3)",
+        "Lat": 40.7582,
+        "Long": -73.8769,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 404,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 125.2,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "125.2",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Elmhurst and Corona (CD4)",
+        "Lat": 40.7408,
+        "Long": -73.8715,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 405,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 94.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "94.4",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Ridgewood and Maspeth (CD5)",
+        "Lat": 40.7108,
+        "Long": -73.8905,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 406,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 55.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "55.4",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Rego Park and Forest Hills (CD6)",
+        "Lat": 40.7222,
+        "Long": -73.8513,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 407,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 51.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "51.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Flushing and Whitestone (CD7)",
+        "Lat": 40.7715,
+        "Long": -73.816,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 408,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 59.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "59.4",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Hillcrest and Fresh Meadows (CD8)",
+        "Lat": 40.7262,
+        "Long": -73.7974,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 409,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 87.3,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "87.3",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Kew Gardens and Woodhaven (CD9)",
+        "Lat": 40.6948,
+        "Long": -73.8391,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 410,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 61.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "61.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "South Ozone Park and Howard Beach (CD10)",
+        "Lat": 40.6694,
+        "Long": -73.8327,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 411,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 36,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "36.0",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Bayside and Little Neck (CD11)",
+        "Lat": 40.7566,
+        "Long": -73.7592,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 412,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 78.1,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "78.1",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Jamaica and Hollis (CD12)",
+        "Lat": 40.6916,
+        "Long": -73.7784,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 413,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 30.5,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "30.5",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Queens Village (CD13)",
+        "Lat": 40.6996,
+        "Long": -73.7373,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 414,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 63.1,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "63.1",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Rockaway and Broad Channel (CD14)",
+        "Lat": 40.5891,
+        "Long": -73.8103,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 501,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 91.6,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "91.6",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "St. George and Stapleton (CD1)",
+        "Lat": 40.6266,
+        "Long": -74.1205,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 502,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 69.7,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "69.7",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "South Beach and Willowbrook (CD2)",
+        "Lat": 40.5932,
+        "Long": -74.1418,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      },
+      {
+        "MeasureID": 674,
+        "GeoID": 503,
+        "GeoType": "CD",
+        "TimePeriodID": 45,
+        "Value": 57.4,
+        "CI": "",
+        "Note": "",
+        "DisplayValue": "57.4",
+        "GeoRank": 6,
+        "GeoTypeDesc": "Community District",
+        "GeoTypeShortDesc": "Neighborhood (Community District)",
+        "Geography": "Tottenville and Great Kills (CD3)",
+        "Lat": 40.5412,
+        "Long": -74.1903,
+        "TimePeriod": "2016",
+        "start_period": 1451606400000,
+        "end_period": 1483142400000
+      }
+    ],
+    "format": {"parse": {"Value": "number"}}
+  },
+  "config": {
+    "concat": {"spacing": 20},
+    "view": {"stroke": "transparent"},
+    "axisY": {
+      "domain": false,
+      "ticks": false,
+      "labelFontSize": 13,
+      "labelAngle": 0
+    },
+    "legend": {"disable": true},
+    "scale": {"invalid": {"color": {"value": "#808080"}}}
+  },
+  "projection": {"type": "mercator"},
+  "transform": [
+    {"calculate": "datum.DisplayValue + ' per 100,000'", "as": "valueLabel"}
+  ],
+  "vconcat": [
+    {
+      "layer": [
+        {
+          "height": 150,
+          "width": "container",
+          "encoding": {
+            "x": {"field": "GeoID", "sort": "y", "axis": null},
+            "y": {
+              "field": "Value",
+              "type": "quantitative",
+              "title": null,
+              "axis": {
+                "labelAngle": 0,
+                "labelFontSize": 11,
+                "tickCount": 3,
+                "labelExpr": "(isObject(datum) ? datum.value : datum) === 0 ? '' : (isObject(datum) ? datum.value : datum)"
+              }
+            }
+          },
+          "layer": [
+            {
+              "mark": {
+                "type": "text",
+                "dy": -30,
+                "align": "right",
+                "fontSize": 11,
+                "color": "black"
+              },
+              "encoding": {
+                "x": {"field": "GeoID", "sort": "y"},
+                "y": {"field": "Value", "type": "quantitative"},
+                "text": {
+                  "condition": {
+                    "test": "datum.GeoType != 'CD'",
+                    "field": "Geography"
+                  },
+                  "value": ""
+                }
+              }
+            },
+            {
+              "mark": {"type": "rule", "yOffset": -20},
+              "encoding": {
+                "color": {
+                  "condition": {
+                    "test": "datum.GeoType != 'CD'",
+                    "value": "black"
+                  },
+                  "value": "transparent"
+                }
+              }
+            },
+            {
+              "mark": {"type": "bar"},
+              "params": [
+                {
+                  "name": "highlight",
+                  "select": {
+                    "type": "point",
+                    "on": "mouseover",
+                    "clear": "mouseout"
+                  }
+                }
+              ],
+              "encoding": {
+                "color": {
+                  "condition": {"test": "datum.GeoID === 305", "value": "blue"},
+                  "value": "lightgray"
+                },
+                "tooltip": [
+                  {"field": "Geography", "title": "Neighborhood"},
+                  {"field": "valueLabel", "title": "Age-adjusted rate"},
+                  {"field": "TimePeriod", "title": "Time period"}
+                ],
+                "stroke": {
+                  "condition": [
+                    {"param": "highlight", "empty": false, "value": "black"}
+                  ],
+                  "value": "white"
+                },
+                "strokeWidth": {
+                  "condition": [
+                    {"param": "highlight", "empty": false, "value": 3}
+                  ],
+                  "value": 0.5
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+    vegaEmbed("#chart", spec,{actions: false})
+
+    var spec2 = spec
+    vegaEmbed("#chart2", spec2,{actions: false})
+
+
+
+    </script>
+
+</html>
