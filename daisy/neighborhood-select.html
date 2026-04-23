@@ -473,7 +473,8 @@
                 }
             };
 
-            vegaEmbed('#barChart', spec, { actions: false });
+            console.log(spec)
+            vegaEmbed('#barChart', spec, { actions: true });
         }
 
         initialize().then(() => {
