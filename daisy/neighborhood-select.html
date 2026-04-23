@@ -100,8 +100,16 @@
 
         <main class="flex-1">
             <div class="max-w-2xl mx-auto px-4 py-8">
+                    <!--
+                    <button class="btn btn-sm" onclick="initialize('10262046.csv')">10/26/2024</button>
+                    <button class="btn btn-sm" onclick="initialize('12282024.csv')">12/28/2024</button>
+                    <button class="btn btn-sm" onclick="initialize('04262025.csv')">04/26/2025</button>
+                    <button class="btn btn-sm" onclick="initialize('07052025.csv')">07/05/2025</button>
+                    -->
+
                 <div class="grid grid-cols-3 gap-2 mt-2">
                     <div class="col-span-2">
+
                         <p class="text-sm text-base-content/60 mb-2">Neighborhood:</p>
                         <div class="input-wrapper border rounded-md">
                             <input 
@@ -175,7 +183,7 @@
         var selectedGeocode;
         var selectedVirus = "COVID-19";
 
-        function initialize() {
+        function initialize(datafile) {
             map = L.map('map').setView([40.715554, -74.0026642], 10);
             
             L.tileLayer('https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=dwIJ8hO2KsTMegUfEpYE', {
@@ -185,18 +193,19 @@
             L.control.scale({ metric: false, position: 'bottomleft' }).addTo(map);
 
             Promise.all([
-                fetch('uhf34_data.csv').then(r => r.text()),
+                fetch(datafile).then(r => r.text()),
                 fetch('UHF34.topo.json').then(r => r.json())
             ]).then(([csvText, topoData]) => {
                 // Parse CSV
-                const rows = csvText.trim().split(/\r?\n/);
-                csvData = rows.slice(1).map(row => {
-                    const values = row.split(',').map(v => v.trim());
+                csvData = d3.csvParse(csvText, d => {
+                    // Handle both formats (with or without DATE column)
+                    const hasDate = d.DATE !== undefined;
+
                     return {
-                        geocode: values[0],
-                        name: values[1],
-                        count: parseInt(values[2], 10),
-                        rate: parseFloat(values[3])
+                        geocode: String(hasDate ? d.GEOCODE : d.GEOCODE),
+                        name: hasDate ? d.VARIABLE : d.VARIABLE,
+                        count: d.COUNT === "" ? null : +d.COUNT,
+                        rate: d.RATE === "" ? null : +d.RATE
                     };
                 });
 
@@ -302,7 +311,7 @@
 
         function getRateStats() {
             const virusData = csvData.filter(d => d.name === selectedVirus);
-            const rates = virusData.map(d => d.rate).filter(r => r !== null && r !== undefined);
+            const rates = virusData.map(d => d.rate).filter(r => !isNaN(r));
             return {
                 min: Math.min(...rates),
                 max: Math.max(...rates)
@@ -462,7 +471,7 @@
         function drawChart(data, virus, geocode) {
             // Get min/max rates for color scaling
             const virusData = data.filter(d => d.name === virus);
-            const rates = virusData.map(d => d.rate).filter(r => r !== null && r !== undefined);
+            const rates = virusData.map(d => d.rate).filter(r => !isNaN(r));
             const minRate = Math.min(...rates);
             const maxRate = Math.max(...rates);
 
@@ -517,6 +526,7 @@
             vegaEmbed('#barChart', spec, { actions: false });
         }
 
-        initialize();
+        initialize('dummydata.csv');
+
     </script>
 </html>
