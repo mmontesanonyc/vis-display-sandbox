@@ -116,15 +116,23 @@
                     </div>
                 </div>
 
+                <div class="my-2 p-2 bg-base-200 rounded-lg">
+                    <p>For the week ending <span class="font-bold">MM/DD</span>, the Citywide rate of <span class="printVirus font-bold">COVID-19</span>* was <span class="font-bold">XX per 100,000 people</span>. Last season, the highest weekly rate was <span class="font-bold">ZZ per 100,000</span>. <a href="#" style="color: purple; text-decoration: underline">Get trend data</a>.</p>
+                    <p class="text-sm text-base-content/60 text-end mt-2">*Laboratory-confirmed cases.</p>
+                </div>
+
                 <div id="selected" class="mt-2 p-2 bg-base-200 rounded-lg hidden">
-                    <p class="mb-4">
+
+                    <p class="mb-4" id="printSentence">SENTENCE GOES HERE.</p>
+
+                    <p class="mb-4 hidden">
                         <span class="font-bold" id="displayRate">XX</span> 
                         <span class="printVirus font-bold">COVID-19</span> cases 
                         <span>per 100,000 people</span> in 
                         <span class="printNeighborhood font-bold">neighborhood</span> 
                         (a total of <span class="font-bold" id="displayCount">YY</span> cases).
                     </p>
-                    <p class="mb-4">This is <span class="font-bold">higher</span> than the Citywide rate of <span class="font-bold">ZZ</span> per 100,000 people.</p>
+                    <p class="mb-4 hidden">This is <span class="font-bold">higher</span> than the Citywide rate of <span class="font-bold">ZZ</span> per 100,000 people.</p>
                     <div class="grid grid-cols-2">
                         <p class="text-sm text-base-content/60 mb-2">Week ending: <span class="font-bold">MM/DD/YYYY</span></p>
                         <p class="text-sm text-base-content/60 mb-1">ZIP codes: <span id="selectedZips" class="font-bold"></span></p>
@@ -281,6 +289,26 @@
             // Find matching data
             const matchingData = csvData ? csvData.find(d => d.geocode === String(selectedGeocode) && d.name === selectedVirus) : null;
 
+            // Sentence, if there's a value
+                if (typeof matchingData.rate === 'number' || typeof matchingData.count === 'string') {
+                    console.log('ITS A NUMBER')
+
+                    var sentence = `
+                        ${matchingData.rate} ${selectedVirus} cases per 100,000 people in ${selectNeighborhood} (a total of ${matchingData.count} cases).
+                        `
+
+                } else {
+                    console.log('ITS NOT A NUMBER')
+                        var sentence = `
+                        <strong>Under 5 cases</strong> reported for <strong>${neighborhood.name}</strong>. To protect privacy, when there are fewer than 5 cases for a neighborhood, the data are suppressed.
+                        `
+                }
+
+                document.getElementById('printSentence').innerHTML = sentence;
+
+
+
+
             // Update selected info panel
             document.getElementById('selectedZips').textContent = neighborhood.zips.join(', ');
             document.querySelectorAll('.printNeighborhood').forEach(el => {
@@ -289,8 +317,8 @@
             document.querySelectorAll('.printVirus').forEach(el => {
                 el.innerHTML = selectedVirus;
             });
-            document.getElementById('displayRate').innerHTML = matchingData ? matchingData.rate : 'N/A';
-            document.getElementById('displayCount').innerHTML = matchingData ? matchingData.count : 'N/A';
+            // document.getElementById('displayRate').innerHTML = matchingData ? matchingData.rate : 'N/A';
+            // document.getElementById('displayCount').innerHTML = matchingData ? matchingData.count : 'N/A';
             document.getElementById('selected').style.display = 'block';
         }
 
