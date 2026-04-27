@@ -159,6 +159,7 @@
         var map;
         var geoJSONLayer;
         var selectedGeocode;
+        var selectedNeighborhood;
         var selectedVirus = "COVID-19";
         var isInitialized = false;
 
@@ -235,6 +236,7 @@
         function selectNeighborhood(geocode) {
             selectedGeocode = geocode;
             const neighborhood = uhf34Data.find(n => n.geocode === geocode);
+            selectedNeighborhood = neighborhood ? neighborhood.name : null;
             if (!neighborhood) return;
 
             document.getElementById('neighborhoodInput').value = neighborhood.name;
@@ -294,7 +296,7 @@
                     console.log('ITS A NUMBER')
 
                     var sentence = `
-                        ${matchingData.rate} ${selectedVirus} cases per 100,000 people in ${selectNeighborhood} (a total of ${matchingData.count} cases).
+                        <strong>${matchingData.rate} ${selectedVirus}</strong> cases per 100,000 people  in <strong>${selectedNeighborhood}</strong> (a total of ${matchingData.count} cases).
                         `
 
                 } else {
