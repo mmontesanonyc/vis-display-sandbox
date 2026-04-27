@@ -195,7 +195,7 @@
                 }).addTo(map);
 
                 uhf34Data = topoJSON.objects.collection.geometries.map(polygon => ({
-                    geocode: polygon.properties.GEOCODE,
+                    geocode: String(polygon.properties.GEOCODE),
                     name: polygon.properties.GEONAME,
                     zips: polygon.properties.ZIPS || []
                 }));
@@ -219,6 +219,12 @@
                     };
                 });
 
+                // Join neighborhood names from topojson
+                csvData.forEach(d => {
+                    const neighborhood = uhf34Data.find(n => n.geocode === d.geocode);
+                    d.neighborhood = neighborhood ? neighborhood.name : d.geocode; // fallback to geocode if not found
+                });
+
                 // Reset selection when loading new data
                 resetSelection();
                 
@@ -234,8 +240,8 @@
         }
 
         function selectNeighborhood(geocode) {
-            selectedGeocode = geocode;
-            const neighborhood = uhf34Data.find(n => n.geocode === geocode);
+            selectedGeocode = String(geocode);
+            const neighborhood = uhf34Data.find(n => n.geocode === String(geocode));
             selectedNeighborhood = neighborhood ? neighborhood.name : null;
             if (!neighborhood) return;
 
@@ -359,7 +365,7 @@
 
         function zoomToGeocode(geocode) {
             const geojson = topojson.feature(topoJSON, topoJSON.objects.collection);
-            const selectedFeature = geojson.features.find(f => f.properties.GEOCODE === geocode);
+            const selectedFeature = geojson.features.find(f => String(f.properties.GEOCODE) === geocode);
             
             if (selectedFeature) {
                 const bounds = L.geoJSON(selectedFeature).getBounds();
@@ -496,7 +502,7 @@
                         "value": null
                     },
                     "tooltip": [
-                        {"field": "geocode", "type": "nominal", "title": "Geocode"},
+                        {"field": "neighborhood", "type": "nominal", "title": "Neighborhood"},
                         {"field": "rate", "type": "quantitative", "title": "Rate per 100,000", "format": ".2f"},
                         {"field": "count", "type": "quantitative", "title": "Case Count"}
                     ]
