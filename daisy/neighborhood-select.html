@@ -133,7 +133,7 @@
                     </div>
                 </div>
 
-                <div class="my-2 p-2 bg-base-200 rounded-lg">
+                <div class="my-2 p-2 bg-base-200 rounded-lg hidden">
                     <p>For the week ending <span class="font-bold">MM/DD</span>, the Citywide rate of <span class="printVirus font-bold">COVID-19</span>* was <span class="font-bold">XX per 100,000 people</span>. Last season, the highest weekly rate was <span class="font-bold">ZZ per 100,000</span>. <a href="#" style="color: purple; text-decoration: underline">Get trend data</a>.</p>
                     <p class="text-sm text-base-content/60 text-end mt-2">*Laboratory-confirmed cases.</p>
                 </div>
@@ -179,6 +179,7 @@
         var selectedNeighborhood;
         var selectedVirus = "COVID-19";
         var isInitialized = false;
+        var maxValue;
 
         function initialize() {
             if (isInitialized) return Promise.resolve();
@@ -225,9 +226,7 @@
             fetch(datafile).then(r => r.text()).then(csvText => {
                 // Parse CSV
                 csvData = d3.csvParse(csvText, d => {
-                    // Handle both formats (with or without DATE column)
                     const hasDate = d.DATE !== undefined;
-
                     return {
                         geocode: String(hasDate ? d.GEOCODE : d.GEOCODE),
                         name: hasDate ? d.VARIABLE : d.VARIABLE,
@@ -240,8 +239,17 @@
                 // Join neighborhood names from topojson
                 csvData.forEach(d => {
                     const neighborhood = uhf34Data.find(n => n.geocode === d.geocode);
-                    d.neighborhood = neighborhood ? neighborhood.name : d.geocode; // fallback to geocode if not found
+                    d.neighborhood = neighborhood ? neighborhood.name : d.geocode;
                 });
+
+                // Set maxValue based on date and virus
+                const maxValues = {
+                    "10/26/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 98.72 },
+                    "12/28/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 113.3 },
+                    "4/26/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 },
+                    "7/5/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 }
+                };
+                maxValue = maxValues[csvData[0]?.date]?.[selectedVirus] || 120;
 
                 // Reset selection when loading new data
                 resetSelection();
@@ -367,11 +375,14 @@
         function getColorForRate(rate) {
             if (rate === null || rate === undefined) return '#e5e7eb'; // gray for missing data
             
-            const stats = getRateStats();
-            const normalized = (rate - stats.min) / (stats.max - stats.min);
+            // Normalize rate from 0 to maxValue instead of min to max
+            const normalized = rate / maxValue;
             
-            // Use D3's interpolateViridis to get the color
-            return d3.interpolateViridis(1 - normalized);
+            // Clamp normalized value between 0 and 1
+            const clampedNormalized = Math.max(0, Math.min(1, normalized));
+            
+            // Use D3's interpolateViridis (reverse the scale to match the bar chart)
+            return d3.interpolateViridis(1 - clampedNormalized);
         }
 
         function updateChoropleth() {
@@ -462,6 +473,17 @@
                     el.innerHTML = selectedVirus;
                 });
                 
+                // Recalculate maxValue for the new virus
+                if (csvData && csvData[0]) {
+                    const maxValues = {
+                        "10/26/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 98.72 },
+                        "12/28/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 113.3 },
+                        "4/26/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 },
+                        "7/5/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 }
+                    };
+                    maxValue = maxValues[csvData[0].date]?.[selectedVirus] || 120;
+                }
+                
                 // Update visualization for new virus
                 updateVisualization();
                 
@@ -522,8 +544,8 @@
                         "type": "quantitative",
                         "scale": {
                             "scheme": "viridis",
-                            "reverse": true, // not necessary if you flip domain
-                            // "domain": [maxValue,5]   // use values beyond 0-1 (or beyond min-max) if you want to hardscale them
+                            // "reverse": true, // not necessary if you flip domain
+                            "domain": [maxValue,0]   // use values beyond 0-1 (or beyond min-max) if you want to hardscale them
                         },
                         "legend": null
                     },
