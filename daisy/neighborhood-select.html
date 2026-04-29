@@ -133,7 +133,7 @@
                     </div>
                 </div>
 
-                <div class="my-2 p-2 bg-base-200 rounded-lg hidden">
+                <div class="my-2 p-2 bg-base-200 rounded-lg">
                     <p>For the week ending <span class="font-bold">MM/DD</span>, the Citywide rate of <span class="printVirus font-bold">COVID-19</span>* was <span class="font-bold">XX per 100,000 people</span>. Last season, the highest weekly rate was <span class="font-bold">ZZ per 100,000</span>. <a href="#" style="color: purple; text-decoration: underline">Get trend data</a>.</p>
                     <p class="text-sm text-base-content/60 text-end mt-2">*Laboratory-confirmed cases.</p>
                 </div>
@@ -479,7 +479,7 @@
             const minRate = Math.min(...rates);
             const maxRate = Math.max(...rates);
 
-            const maxValue = { "10/26/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 98.72 }, "12/28/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 113.3 }, "4/26/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 }, "7/5/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 } }[data[0].date]?.[selectedVirus] || 120;
+            var maxValue = { "10/26/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 98.72 }, "12/28/24": { "COVID-19": 291.57, "Influenza": 349.77, "RSV": 113.3 }, "4/26/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 }, "7/5/25": { "COVID-19": 291.57, "Influenza": 502.72, "RSV": 113.3 } }[data[0].date]?.[selectedVirus] || 120;
 
             console.log(data[0].date, selectedVirus, maxValue)
 
@@ -522,8 +522,8 @@
                         "type": "quantitative",
                         "scale": {
                             "scheme": "viridis",
-                            // "reverse": true, // not necessary if you flip domain
-                            "domain": [maxValue,5]   // use values beyond 0-1 (or beyond min-max) if you want to hardscale them
+                            "reverse": true, // not necessary if you flip domain
+                            // "domain": [maxValue,5]   // use values beyond 0-1 (or beyond min-max) if you want to hardscale them
                         },
                         "legend": null
                     },
