@@ -39,6 +39,17 @@
     font-weight: bold;
     border-radius: 10%;
   }
+
+  .bad {
+    color: purple;
+  }
+
+  .good {
+    color: darkblue;
+  }
+
+  .neutral {
+    color: gray;
 </style>
 
 <body class="bg-base-100">
@@ -65,7 +76,7 @@
 
                 <!-- Indicator Header -->
                 <div class="border-t-2 border-base-300 pt-6 mb-6 mt-12">
-                    <h3 class="text-xl font-bold">Bicycle network coverage</h3>
+                    <h3 class="text-xl font-bold">Bicycle network coverage: <span class="comp-highlight bad">lower</span> than NYC overall</h3>
                 </div>
 
                 <!-- Content Row -->
@@ -74,7 +85,7 @@
                     <!-- Text Column -->
                     <div class="prose">
                         <p class="text-base-content/80">
-                          Access to bike lanes can make it easier and safer to ride a bike more often.  <span class="value-highlight">11% of roads</span> in <span class="neighborhood-highlight">East New York and Starrett City</span> have bike lanes, which is <span class="comp-highlight">lower</span> than NYC overall. 
+                          Access to bike lanes can make it easier and safer to ride a bike more often.  <span class="value-highlight">11% of roads</span> in <span class="neighborhood-highlight">East New York and Starrett City</span> have bike lanes. 
                         </p>
                         <p class="text-base-content/80 mt-4">
                             Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
@@ -124,7 +135,7 @@
 
                 <!-- Indicator header -->
                 <div class="border-t-2 border-base-300 pt-6 mb-6">
-                    <h3 class="text-xl font-bold">Pedestrian injury hospitalizations</h3>
+                    <h3 class="text-xl font-bold">Pedestrian injury hospitalizations: <span class="comp-highlight good">similar to</span> NYC overall</h3>
                 </div>
 
                 <!-- Content Row -->
@@ -133,7 +144,7 @@
                     <!-- Text Column -->
                     <div class="prose">
                         <p class="text-base-content/80">
-                            <span class="neighborhood-highlight">East New York and Starrett City</span> residents have a pedestrian injury hospitalization rate that is <span class="comp-highlight">similar to</span> NYC overall.                        </p>
+                            In <span class="neighborhood-highlight">East New York and Starrett City</span> residents have a pedestrian injury hospitalization rate of <span class="value-highlight">101.3 per 100,000 people</span>.</p>
                         <p class="text-base-content/80 mt-4">
                             Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
                         </p>
