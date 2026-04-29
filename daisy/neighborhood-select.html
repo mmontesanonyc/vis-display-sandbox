@@ -487,11 +487,12 @@
                         "value": 1
                     },
                     "color": {
-                        "field": "normalized_rate",
+                        "field": "rate",         // use normalized_rate if you want to use 0-1 for color encoding
                         "type": "quantitative",
                         "scale": {
                             "scheme": "viridis",
-                            "reverse": true
+                            "reverse": true, // not necessary if you flip domain
+                            // "domain": [349,0]   // use values beyond 0-1 (or beyond min-max) if you want to hardscale them
                         },
                         "legend": null
                     },
