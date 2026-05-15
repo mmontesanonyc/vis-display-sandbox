@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Neighborhoods Explorer</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- DaisyUI + Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .neighborhood-layer {
+            fill-opacity: 0.3;
+            stroke: #333;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: fill-opacity 0.2s;
+        }
+        
+        .neighborhood-layer:hover {
+            fill-opacity: 0.6;
+            stroke-width: 2.5;
+        }
+        
+        .neighborhood-layer.selected {
+            fill-opacity: 0.7;
+            stroke: #ff6b6b;
+            stroke-width: 3;
+        }
+        
+        /* Sidebar overlay */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            transition: right 0.3s ease-in-out;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+        }
+        
+        #sidebar.open {
+            right: 0;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- Map Container -->
+    <div id="map"></div>
+    
+    <!-- Sidebar Panel -->
+    <div id="sidebar" class="flex flex-col">
+        <button class="close-btn btn btn-circle btn-sm" onclick="closeSidebar()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <div class="p-6 overflow-y-auto flex-1">
+            <div class="mb-6">
+                <div class="badge badge-primary mb-2">Neighborhood</div>
+                <h2 id="neighborhood-name" class="text-3xl font-bold mb-4">Select a neighborhood</h2>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div id="neighborhood-details" class="space-y-4">
+                <p class="text-gray-500">Click on any neighborhood on the map to view details.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- TopoJSON Client -->
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    
+    <script>
+        // Initialize the map
+        const map = L.map('map', {
+            zoomControl: true
+        }).setView([40.7128, -73.95], 11);
+        
+        // Add base tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 19
+        }).addTo(map);
+        
+        let currentLayer = null;
+        let neighborhoodLayers = [];
+        
+        // Color palette for neighborhoods
+        const colors = [
+            '#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3',
+            '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd'
+        ];
+        
+        function getColor(index) {
+            return colors[index % colors.length];
+        }
+        
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            if (currentLayer) {
+                currentLayer.setStyle({ className: 'neighborhood-layer' });
+                currentLayer = null;
+            }
+        }
+        
+        function openSidebar(feature, layer) {
+            // Update sidebar content
+            const geoname = feature.properties.GEONAME || 'Unknown';
+            document.getElementById('neighborhood-name').textContent = geoname;
+            
+            // You can add more details here as you populate them
+            document.getElementById('neighborhood-details').innerHTML = `
+                <div class="card bg-base-200">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg">Basic Information</h3>
+                        <div class="space-y-2">
+                            <p><span class="font-semibold">Name:</span> ${geoname}</p>
+                            <p class="text-sm text-gray-500">Additional details will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Highlight selected layer
+            if (currentLayer) {
+                currentLayer.setStyle({ className: 'neighborhood-layer' });
+            }
+            layer.setStyle({ className: 'neighborhood-layer selected' });
+            currentLayer = layer;
+            
+            // Open sidebar
+            document.getElementById('sidebar').classList.add('open');
+        }
+        
+        // Load and display TopoJSON
+        fetch('https://raw.githubusercontent.com/nychealth/EHDP-data/refs/heads/production/geography/NTA_2020.topo.json')
+            .then(response => response.json())
+            .then(topology => {
+                // Convert TopoJSON to GeoJSON
+                const geojson = topojson.feature(topology, topology.objects.collection);
+                
+                // Add GeoJSON layer to map
+                L.geoJSON(geojson, {
+                    style: function(feature, index) {
+                        const featureIndex = geojson.features.indexOf(feature);
+                        return {
+                            fillColor: getColor(featureIndex),
+                            weight: 1.5,
+                            opacity: 1,
+                            color: '#333',
+                            fillOpacity: 0.3,
+                            className: 'neighborhood-layer'
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        neighborhoodLayers.push(layer);
+                        
+                        // Bind tooltip
+                        layer.bindTooltip(feature.properties.GEONAME || 'Unknown', {
+                            permanent: false,
+                            direction: 'center',
+                            className: 'neighborhood-tooltip'
+                        });
+                        
+                        // Click event
+                        layer.on('click', function(e) {
+                            openSidebar(feature, layer);
+                            L.DomEvent.stopPropagation(e);
+                        });
+                    }
+                }).addTo(map);
+                
+                // Fit map to bounds
+                const bounds = L.geoJSON(geojson).getBounds();
+                map.fitBounds(bounds);
+            })
+            .catch(error => {
+                console.error('Error loading TopoJSON:', error);
+                alert('Failed to load neighborhood data. Please check the console for details.');
+            });
+        
+        // Close sidebar when clicking on map
+        map.on('click', function() {
+            closeSidebar();
+        });
+    </script>
+</body>
+</html>
