@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-reported health</title>
+<style>
+:root{
+  --bg:#f5f7f8; --panel:#fff; --side:#12303f; --side-muted:#9db6c2;
+  --ink:#1a2a33; --muted:#5b6f7a; --line:#d9e2e7; --focus:#0b6bcb; --sel:#eaf2f6;
+  --excellent-bg:#d8f0df; --excellent-fg:#14532d; --excellent-dot:#22a355;
+  --vgood-bg:#e3f0c8; --vgood-fg:#3f5212; --vgood-dot:#8db82a;
+  --good-bg:#fdf0c4; --good-fg:#6b4a05; --good-dot:#e0a800;
+  --fp-bg:#fbd9d3; --fp-fg:#8a1f11; --fp-dot:#d9412b;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1a20; --panel:#172730; --side:#0a1419; --ink:#e8eff2; --muted:#9db0ba; --line:#28404c; --sel:#1f3540;
+    --excellent-bg:#173a25; --excellent-fg:#a6e6bb;
+    --vgood-bg:#2c3a12; --vgood-fg:#d3ea9c;
+    --good-bg:#42340a; --good-fg:#f6dc8a;
+    --fp-bg:#4a1b14; --fp-fg:#f7b8ad;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:100vh}
+aside{background:var(--side);padding:28px 20px;color:#e6eef2}
+aside h2{margin:0 0 20px;font:600 18px/1.2 Georgia,serif}
+.field{margin-bottom:18px}
+label{display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--side-muted)}
+select{width:100%;padding:10px 12px;font:inherit;color:#1a2a33;background:#fff;border:0;border-radius:6px}
+select:focus-visible,.row:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+main{padding:40px clamp(20px,4vw,56px);max-width:1040px}
+h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
+.question{margin:0 0 28px;color:var(--muted)}
+.question strong{color:var(--ink)}
+.q-text{margin:4px 0 0;font-size:18px;color:var(--ink);max-width:70ch}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
+.tab{padding:10px 18px;font:inherit;font-weight:600;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--focus)}
+.tab:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.panel[hidden]{display:none}
+.placeholder{min-height:240px;display:flex;align-items:center;justify-content:center;border:2px dashed var(--line);border-radius:8px;color:var(--muted)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;font-weight:600;font-size:15px;white-space:nowrap}
+.badge::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.75}
+.excellent{background:var(--excellent-bg);color:var(--excellent-fg)}
+.vgood{background:var(--vgood-bg);color:var(--vgood-fg)}
+.good{background:var(--good-bg);color:var(--good-fg)}
+.fp{background:var(--fp-bg);color:var(--fp-fg)}
+
+/* Overview table */
+.table{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.head,.row{display:grid;grid-template-columns:28px 150px minmax(0,1fr) 72px;align-items:center;column-gap:14px;padding:0 16px}
+.head{padding-top:10px;padding-bottom:10px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)}
+.head .nyc,.val{text-align:right}
+.row{width:100%;min-height:64px;background:none;border:0;border-bottom:1px solid var(--line);font:inherit;color:inherit;text-align:left;cursor:pointer}
+.row:hover,.row[aria-pressed="true"]{background:var(--sel)}
+.mapped{width:20px;height:20px;color:var(--ink);visibility:hidden}
+.row[aria-pressed="true"] .mapped{visibility:visible}
+.val{font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
+.strip{position:relative;height:56px}
+.dot{position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;opacity:.85}
+.mean{position:absolute;top:4px;bottom:4px;width:2px;margin-left:-1px;background:var(--ink)}
+.axis{display:grid;grid-template-columns:28px 150px minmax(0,1fr) 72px;column-gap:14px;padding:6px 16px 10px;font-size:12px;color:var(--muted)}
+.axis div{position:relative;height:16px;grid-column:3}
+.axis span{position:absolute;transform:translateX(-50%)}
+
+.map{margin-top:24px;min-height:280px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;border:2px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
+.map b{color:var(--ink)}
+
+@media (max-width:720px){
+  .app{grid-template-columns:1fr}
+  aside{padding:20px}
+  .head,.axis{display:none}
+  .row{grid-template-columns:22px 1fr 56px;grid-template-areas:"m n v" "s s s";padding:8px 12px}
+  .mapped{grid-area:m}.rname{grid-area:n}.strip{grid-area:s}.val{grid-area:v}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside aria-label="Filters">
+    <h2>Explore indicators</h2>
+    <div class="field">
+      <label for="topic">Topics</label>
+      <select id="topic"><option>Health status</option></select>
+    </div>
+    <div class="field">
+      <label for="question">Question</label>
+      <select id="question"><option>Self-reported health</option></select>
+    </div>
+  </aside>
+
+  <main>
+    <h1>Self-reported health</h1>
+    <div class="question">
+      <strong>Question:</strong>
+      <p class="q-text">Would you say that your health is excellent, very good, good, or fair or poor?</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="View">
+      <button class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
+      <button class="tab" role="tab" id="tab-time" aria-controls="panel-time" aria-selected="false" tabindex="-1">Over time</button>
+      <button class="tab" role="tab" id="tab-group" aria-controls="panel-group" aria-selected="false" tabindex="-1">By group</button>
+    </div>
+
+    <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="table">
+        <div class="head" aria-hidden="true">
+          <span></span><span>Response</span><span>Distribution (42 dots)</span><span class="nyc">NYC</span>
+        </div>
+        <div id="rows" role="group" aria-label="Responses. Select one to map it."></div>
+        <div class="axis" aria-hidden="true"><div id="ticks"></div></div>
+      </div>
+
+      <div class="map">
+        <span>Choropleth map</span>
+        <span>Showing: <b id="mapLabel">Excellent</b></span>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-time" role="tabpanel" aria-labelledby="tab-time" hidden>
+      <div class="placeholder">Over time view goes here</div>
+    </section>
+
+    <section class="panel" id="panel-group" role="tabpanel" aria-labelledby="tab-group" hidden>
+      <div class="placeholder">By group view goes here</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const MAX = 50; // shared axis, 0-50%
+const N = 42;
+const ROWS = [
+  {key:'excellent', name:'Excellent',    mean:21.0, sd:5.0},
+  {key:'vgood',     name:'Very good',    mean:29.4, sd:4.5},
+  {key:'good',      name:'Good',         mean:30.4, sd:4.5},
+  {key:'fp',        name:'Fair or poor', mean:19.2, sd:6.0}
+];
+
+// Placeholder dot values: seeded, shifted so each row's dots average exactly to its NYC value.
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+ROWS.forEach((row,i)=>{
+  const r = rng(11+i*7);
+  const v = Array.from({length:N},()=>row.mean + Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r())*row.sd);
+  const shift = row.mean - v.reduce((a,b)=>a+b)/N;
+  row.vals = v.map(x=>Math.min(MAX-1, Math.max(0.5, x+shift)));
+});
+
+const MAP_SVG = '<svg class="mapped" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
+const host = document.getElementById('rows');
+
+ROWS.forEach(r=>{
+  const b = document.createElement('button');
+  b.className = 'row'; b.type = 'button'; b.dataset.key = r.key;
+  b.innerHTML = MAP_SVG +
+    '<span class="rname"><span class="badge '+r.key+'">'+r.name+'</span></span>' +
+    '<span class="strip"></span>' +
+    '<span class="val">'+r.mean.toFixed(1)+'%</span>';
+  b.addEventListener('click',()=>select(r.key));
+  host.appendChild(b);
+});
+
+function select(key){
+  host.querySelectorAll('.row').forEach(b=>b.setAttribute('aria-pressed', b.dataset.key===key));
+  document.getElementById('mapLabel').textContent = ROWS.find(r=>r.key===key).name;
+}
+
+// Simple beeswarm: dots sit at their value on x and stack vertically to avoid overlap.
+function draw(){
+  const D = 9;
+  host.querySelectorAll('.row').forEach((b,i)=>{
+    const r = ROWS[i], s = b.querySelector('.strip'), w = s.clientWidth, placed = [];
+    if(!w) return; // hidden tab: skip until visible
+    s.innerHTML = '';
+    [...r.vals].sort((a,c)=>a-c).forEach(v=>{
+      const x = v/MAX*w;
+      for(let k=0;k<20;k++){
+        const y = (k%2?1:-1)*Math.ceil(k/2)*D*0.95;
+        if(!placed.some(p=>Math.hypot(p.x-x,p.y-y)<D*1.05)){
+          placed.push({x,y});
+          const d = document.createElement('span');
+          d.className = 'dot';
+          d.style.cssText = 'left:'+x+'px;top:calc(50% + '+y+'px);background:var(--'+r.key+'-dot)';
+          s.appendChild(d);
+          break;
+        }
+      }
+    });
+    const m = document.createElement('span');
+    m.className = 'mean'; m.style.left = (r.mean/MAX*w)+'px';
+    s.appendChild(m);
+  });
+  const t = document.getElementById('ticks');
+  t.innerHTML = '';
+  for(let p=0;p<=MAX;p+=10){
+    const el = document.createElement('span');
+    el.textContent = p+'%'; el.style.left = (p/MAX*100)+'%';
+    t.appendChild(el);
+  }
+}
+
+select('excellent');
+draw();
+new ResizeObserver(draw).observe(host);
+
+// Tabs
+const tabs = [...document.querySelectorAll('.tab')];
+function showTab(tab){
+  tabs.forEach(t=>{
+    const on = t===tab;
+    t.setAttribute('aria-selected', on);
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  draw(); // strips can't be measured while hidden, so redraw when Overview returns
+}
+tabs.forEach((t,i)=>{
+  t.addEventListener('click',()=>showTab(t));
+  t.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+      const n = tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];
+      showTab(n); n.focus();
+    }
+  });
+});
+</script>
+</body>
+</html>
