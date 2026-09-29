@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Self-reported health</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{
   --bg:#f5f7f8; --panel:#fff; --side:#12303f; --side-muted:#9db6c2;
@@ -71,8 +72,16 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
 .axis div{position:relative;height:16px;grid-column:3}
 .axis span{position:absolute;transform:translateX(-50%)}
 
-.map{margin-top:24px;min-height:280px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;border:2px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
-.map b{color:var(--ink)}
+/* Map */
+.map-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin:24px 0 8px}
+.map-head .label{color:var(--muted)}
+.map-head .label b{color:var(--ink)}
+.legend{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend .bar{width:120px;height:10px;border-radius:5px;border:1px solid var(--line)}
+#map{height:440px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.leaflet-container{background:var(--panel);font:inherit}
+.map-note{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.map-note[hidden]{display:none}
 
 @media (max-width:720px){
   .app{grid-template-columns:1fr}
@@ -80,6 +89,7 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
   .head,.axis{display:none}
   .row{grid-template-columns:22px 1fr 56px;grid-template-areas:"m n v" "s s s";padding:8px 12px}
   .mapped{grid-area:m}.rname{grid-area:n}.strip{grid-area:s}.val{grid-area:v}
+  #map{height:340px}
 }
 </style>
 </head>
@@ -119,10 +129,15 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
         <div class="axis" aria-hidden="true"><div id="ticks"></div></div>
       </div>
 
-      <div class="map">
-        <span>Choropleth map</span>
-        <span>Showing: <b id="mapLabel">Excellent</b></span>
+      <div class="map-head">
+        <span class="label">Mapped: <b id="mapLabel">Excellent</b> (by UHF 42 neighborhood)</span>
+        <span class="legend" aria-hidden="true">
+          <span id="legMin"></span><span class="bar" id="legBar"></span><span id="legMax"></span>
+        </span>
       </div>
+      <div id="map" role="img" aria-label="Choropleth map of UHF 42 neighborhoods"></div>
+      <p class="map-note" id="mapNote" hidden>Couldn't load the neighborhood boundaries. Check your internet connection and reload.</p>
+      <p class="map-note">Boundaries: NYC DOHMH UHF 42 neighborhoods (github.com/nycehs/NYC_geography). Map values are placeholders.</p>
     </section>
 
     <section class="panel" id="panel-time" role="tabpanel" aria-labelledby="tab-time" hidden>
@@ -135,8 +150,9 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
   </main>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-const MAX = 50; // shared axis, 0-50%
+const MAX = 50; // shared axis for the dot plot, 0-50%
 const N = 42;
 const ROWS = [
   {key:'excellent', name:'Excellent',    mean:21.0, sd:5.0},
@@ -145,17 +161,20 @@ const ROWS = [
   {key:'fp',        name:'Fair or poor', mean:19.2, sd:6.0}
 ];
 
-// Placeholder dot values: seeded, shifted so each row's dots average exactly to its NYC value.
+// Placeholder area values: seeded, shifted so each row's values average exactly to its NYC value.
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 ROWS.forEach((row,i)=>{
   const r = rng(11+i*7);
   const v = Array.from({length:N},()=>row.mean + Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r())*row.sd);
   const shift = row.mean - v.reduce((a,b)=>a+b)/N;
   row.vals = v.map(x=>Math.min(MAX-1, Math.max(0.5, x+shift)));
+  row.min = Math.min(...row.vals);
+  row.max = Math.max(...row.vals);
 });
 
 const MAP_SVG = '<svg class="mapped" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
 const host = document.getElementById('rows');
+let current = ROWS[0];
 
 ROWS.forEach(r=>{
   const b = document.createElement('button');
@@ -169,8 +188,10 @@ ROWS.forEach(r=>{
 });
 
 function select(key){
+  current = ROWS.find(r=>r.key===key);
   host.querySelectorAll('.row').forEach(b=>b.setAttribute('aria-pressed', b.dataset.key===key));
-  document.getElementById('mapLabel').textContent = ROWS.find(r=>r.key===key).name;
+  document.getElementById('mapLabel').textContent = current.name;
+  recolor();
 }
 
 // Simple beeswarm: dots sit at their value on x and stack vertically to avoid overlap.
@@ -207,6 +228,48 @@ function draw(){
   }
 }
 
+/* ---------- Map ---------- */
+const GEO_URL = 'https://raw.githubusercontent.com/nycehs/NYC_geography/master/UHF42.geo.json';
+const map = L.map('map', {zoomSnap:0.25, attributionControl:false});
+let layer = null;
+
+function nameOf(props){
+  const k = Object.keys(props||{}).find(k=>/name/i.test(k));
+  return k ? props[k] : 'Neighborhood';
+}
+function colorNow(){
+  return getComputedStyle(document.documentElement).getPropertyValue('--'+current.key+'-dot').trim();
+}
+// Same hue as the selected row's dots; darker = higher value within that row's range.
+function styleFor(l){
+  const v = current.vals[l._idx % N];
+  const t = (v-current.min)/((current.max-current.min)||1);
+  return {fillColor:colorNow(), fillOpacity:0.2+0.75*t, color:'#fff', weight:1};
+}
+function recolor(){
+  const c = colorNow();
+  document.getElementById('legBar').style.background =
+    'linear-gradient(90deg,color-mix(in srgb,'+c+' 20%,transparent),'+c+')';
+  document.getElementById('legMin').textContent = current.min.toFixed(1)+'%';
+  document.getElementById('legMax').textContent = current.max.toFixed(1)+'%';
+  if(layer) layer.eachLayer(l=>l.setStyle(styleFor(l)));
+}
+
+fetch(GEO_URL).then(r=>r.json()).then(gj=>{
+  let i = 0;
+  layer = L.geoJSON(gj, {
+    style: f=>({color:'#fff', weight:1, fillOpacity:0}),
+    onEachFeature:(f,l)=>{
+      l._idx = i++; // placeholder: Nth polygon gets the Nth dot value. Join by UHF code when you have real data.
+      l.bindTooltip(()=>nameOf(f.properties)+': '+current.vals[l._idx % N].toFixed(1)+'%', {sticky:true});
+      l.on('mouseover',()=>l.setStyle({weight:3}));
+      l.on('mouseout',()=>l.setStyle({weight:1}));
+    }
+  }).addTo(map);
+  map.fitBounds(layer.getBounds());
+  recolor();
+}).catch(()=>{ document.getElementById('mapNote').hidden = false; });
+
 select('excellent');
 draw();
 new ResizeObserver(draw).observe(host);
@@ -221,6 +284,10 @@ function showTab(tab){
     document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
   });
   draw(); // strips can't be measured while hidden, so redraw when Overview returns
+  if(tab.id==='tab-overview'){
+    map.invalidateSize();
+    if(layer) map.fitBounds(layer.getBounds());
+  }
 }
 tabs.forEach((t,i)=>{
   t.addEventListener('click',()=>showTab(t));
