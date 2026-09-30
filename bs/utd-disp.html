@@ -99,19 +99,19 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
     <h2>Explore indicators</h2>
     <div class="field">
       <label for="topic">Topics</label>
-      <select id="topic"><option>Health status</option></select>
+      <select id="topic"></select>
     </div>
     <div class="field">
       <label for="question">Question</label>
-      <select id="question"><option>Self-reported health</option></select>
+      <select id="question"></select>
     </div>
   </aside>
 
   <main>
-    <h1>Self-reported health</h1>
+    <h1 id="title">Self-reported health</h1>
     <div class="question">
       <strong>Question:</strong>
-      <p class="q-text">Would you say that your health is excellent, very good, good, or fair or poor?</p>
+      <p class="q-text" id="qtext">Would you say that your health is excellent, very good, good, or fair or poor?</p>
     </div>
 
     <div class="tabs" role="tablist" aria-label="View">
@@ -274,7 +274,7 @@ select('excellent');
 draw();
 new ResizeObserver(draw).observe(host);
 
-// Tabs
+/* ---------- Tabs ---------- */
 const tabs = [...document.querySelectorAll('.tab')];
 function showTab(tab){
   tabs.forEach(t=>{
@@ -298,6 +298,146 @@ tabs.forEach((t,i)=>{
     }
   });
 });
+
+/* ---------- Topics & questions ---------- */
+const TOPICS = {
+  GEN:'General health & chronic conditions', INS:'Health insurance & coverage', ACC:'Access to care',
+  RX:'Prescription medications', PREV:'Preventive care & screening', MH:'Mental health',
+  TOB:'Tobacco & vaping', ALC:'Alcohol', NUT:'Nutrition & food', PA:'Physical activity',
+  SRH:'Sexual & reproductive health', VIO:'Violence & safety', SOC:'Social & economic conditions',
+  ENV:'Housing & environment', COM:'Community & neighborhood', DIS:'Disability & caregiving',
+  INJ:'Injury & road safety'
+};
+// One question per line: name|topic codes (space-separated)
+const ITEMS = `Self-reported health|GEN
+Asthma (ever)|GEN
+Asthma (current)|GEN
+Asthma (age first told)|GEN
+COPD (ever)|GEN
+High blood pressure (ever)|GEN
+Blood pressure medication (ever)|GEN RX
+Blood pressure medication (current)|GEN RX
+Diabetes (ever)|GEN
+Diabetes medication (insulin or pills)|GEN RX
+Diabetes medication|GEN RX
+Confusion or memory loss|GEN DIS
+Overweight and obesity|GEN NUT
+Health insurance coverage|INS ACC
+Health insurance type|INS
+Doctor not accept insurance|INS ACC
+Dental insurance|INS ACC
+Saw any medical providers past year|ACC
+Personal doctor|ACC
+Saw personal doctor in past year|ACC
+Usual place for care|ACC
+Appointment wait time|ACC
+Dental cleaning|PREV ACC
+Did not get needed medical care|ACC
+Did not get medical care due to costs|ACC INS SOC
+Device use (electronic medical)|DIS
+Device use (assistive)|DIS
+Did not fill prescription due to cost|RX ACC SOC
+Put off or skipped prescription due to cost|RX ACC SOC
+Breast cancer screening (mammography)|PREV SRH
+Cervical cancer screening (Pap test)|PREV SRH
+Colon cancer screening (colonoscopy)|PREV
+HIV test (ever and in past year)|PREV SRH
+Depression (current)|MH
+Considered suicide|MH
+Did not get needed mental health care (among those with depression)|MH ACC
+Serious psychological distress|MH
+Mental health counseling or treatment (among SPD)|MH ACC
+Did not get needed mental health care (among SPD)|MH ACC
+Mental health counseling or treatment (among those with depression)|MH ACC
+Provide unpaid care to adult|DIS SOC
+Difficulty performing daily activities|DIS
+Smoking status|TOB
+Smoking frequency|TOB
+Age began smoking|TOB
+Menthol cigarettes|TOB
+Place of cigarette purchase|TOB
+Nicotine replacement therapy use|TOB
+Smoke little cigars|TOB
+Smoke an electronic cigarette, past 12 months|TOB
+Second-hand smoke from outside|TOB ENV
+Lives in nonsmoking building|TOB ENV
+Drinks alcohol|ALC
+Heavy drinking|ALC
+Binge drinking|ALC
+Fruit/vegetable consumption|NUT
+Water consumption|NUT
+Sugary drink consumption|NUT
+Food insecurity|NUT SOC
+Influenza (flu) vaccination|PREV
+Influenza (flu) vaccination - where received|PREV ACC
+Pneumonia vaccination|PREV
+Hepatitis B vaccination|PREV
+Hepatitis A vaccine ever|PREV
+Exercise in last 30 days|PA
+Rode bicycle in past year|PA INJ
+Sexual identity|SRH
+Number of sex partners|SRH
+Condom use at last sex|SRH
+Condom use (anal sex)|SRH
+Men who had sex with men|SRH
+Women who had sex with women|SRH
+Contraceptive use (among females)|SRH
+Contraceptive type (among females)|SRH
+Criminal justice system involvement (personal)|SOC
+Criminal justice system involvement (family member)|SOC
+Delayed or unable to pay mortgage or rent|SOC ENV
+Fear of intimate partner (ever)|VIO
+Physically hurt by intimate partner (ever)|VIO
+Provider asked about relationship conflict|VIO ACC
+Insulted or controlled by intimate partner (ever)|VIO
+Unwanted sexual touch (ever)|VIO SRH
+Forced sex ever (2019)|VIO SRH
+Neighborhood safety|COM
+Helpful neighbors|COM
+Public housing, rental assistance or rent control|ENV SOC
+Public housing or rental assistance|ENV SOC
+Community - discuss issues|COM
+Community - contribute to projects|COM
+Community - clean up|COM
+Community - trust with keys|COM
+Community - proud of neighborhood|COM
+Rats on street|ENV
+Personal use of pesticides inside home|ENV
+Type of pesticide used inside home|ENV
+Mold (past 12 months)|ENV
+Drove motor vehicle in NYC past 30 days|INJ
+Drove 10MPH or more over posted speed limit|INJ
+Read or sent message while driving|INJ`
+  .split('\n').map(l=>{ const [name,t]=l.split('|'); return {name, topics:t.split(' ')}; });
+
+// Question wording, where we have it (others show a placeholder for now)
+const WORDING = {
+  'Self-reported health':'Would you say that your health is excellent, very good, good, or fair or poor?'
+};
+
+const topicSel = document.getElementById('topic');
+const questionSel = document.getElementById('question');
+
+topicSel.innerHTML = '<option value="ALL">All topics ('+ITEMS.length+')</option>' +
+  Object.entries(TOPICS).map(([k,v])=>
+    '<option value="'+k+'">'+v+' ('+ITEMS.filter(i=>i.topics.includes(k)).length+')</option>').join('');
+
+function fillQuestions(keepName){
+  const t = topicSel.value;
+  const list = ITEMS.filter(i=>t==='ALL' || i.topics.includes(t));
+  questionSel.innerHTML = list.map(i=>'<option>'+i.name+'</option>').join('');
+  questionSel.value = list.some(i=>i.name===keepName) ? keepName : list[0].name;
+  showQuestion();
+}
+function showQuestion(){
+  const name = questionSel.value;
+  document.getElementById('title').textContent = name;
+  document.getElementById('qtext').textContent = WORDING[name] || '(Question wording to be added)';
+  document.title = name;
+}
+topicSel.addEventListener('change',()=>fillQuestions(questionSel.value));
+questionSel.addEventListener('change',showQuestion);
+fillQuestions('Self-reported health');
 </script>
 </body>
 </html>
