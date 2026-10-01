@@ -13,6 +13,7 @@
   --vgood-bg:#e3f0c8; --vgood-fg:#3f5212; --vgood-dot:#8db82a;
   --good-bg:#fdf0c4; --good-fg:#6b4a05; --good-dot:#e0a800;
   --fp-bg:#fbd9d3; --fp-fg:#8a1f11; --fp-dot:#d9412b;
+  --pub-report:#0b6bcb; --pub-brief:#7a3db8; --pub-article:#b45309;
 }
 @media (prefers-color-scheme:dark){
   :root{
@@ -21,6 +22,7 @@
     --vgood-bg:#2c3a12; --vgood-fg:#d3ea9c;
     --good-bg:#42340a; --good-fg:#f6dc8a;
     --fp-bg:#4a1b14; --fp-fg:#f7b8ad;
+    --pub-report:#6cb0ff; --pub-brief:#c9a2f2; --pub-article:#f0b36a;
   }
 }
 *{box-sizing:border-box}
@@ -37,6 +39,19 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
 .question{margin:0 0 28px;color:var(--muted)}
 .question strong{color:var(--ink)}
 .q-text{margin:4px 0 0;font-size:18px;color:var(--ink);max-width:70ch}
+
+/* Related indicators (sidebar) */
+.related{margin-top:28px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14)}
+.related h3{margin:0 0 8px;font:600 12px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--side-muted)}
+.related ul{list-style:none;margin:0 0 24px;padding:0}
+.related ul:last-child{margin-bottom:0}
+.related a{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -10px;padding:8px 10px;border-radius:6px;color:#e6eef2;font-size:15px;text-decoration:none}
+.related a::after{content:"›";font-size:18px;line-height:1;color:var(--side-muted);transition:transform .15s,color .15s}
+.related a.ext::after{content:"↗";font-size:14px}
+.related a:hover{background:rgba(255,255,255,.08)}
+.related a:hover::after{color:#fff;transform:translateX(2px)}
+.related a.ext:hover::after{transform:translate(2px,-2px)}
+.related a:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
 
 /* Tabs */
 .tabs{display:flex;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line)}
@@ -83,6 +98,24 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
 .map-note{margin:6px 0 0;font-size:12px;color:var(--muted)}
 .map-note[hidden]{display:none}
 
+/* Footer: related publications */
+.site-footer{margin-top:48px;padding-top:28px;border-top:1px solid var(--line)}
+.site-footer h2{margin:0 0 16px;font:600 20px/1.2 Georgia,serif}
+.pubs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.pub{display:flex;flex-direction:column;gap:10px;padding:20px;background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:8px;color:inherit;text-decoration:none;transition:box-shadow .15s,transform .15s}
+.pub:hover{box-shadow:0 6px 18px rgba(0,0,0,.12);transform:translateY(-2px)}
+.pub:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.pub .type{align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.pub h3{margin:0;font:600 18px/1.3 Georgia,serif}
+.pub p{margin:0;font-size:15px;color:var(--muted);flex:1}
+.pub .meta{font-size:13px;color:var(--muted)}
+.pub .go{font-size:14px;font-weight:600;color:var(--accent)}
+.pub .go::after{content:" ↗"}
+.pub.report{--accent:var(--pub-report)}
+.pub.brief{--accent:var(--pub-brief)}
+.pub.article{--accent:var(--pub-article)}
+.foot-note{margin:24px 0 0;font-size:12px;color:var(--muted)}
+
 @media (max-width:720px){
   .app{grid-template-columns:1fr}
   aside{padding:20px}
@@ -105,19 +138,20 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
       <label for="question">Question</label>
       <select id="question"></select>
     </div>
-    <div class="field">
-    <p>Similar indicators on CHS</p>
+
+    <nav class="related" aria-label="Related indicators">
+      <h3>Similar indicators on CHS</h3>
       <ul>
-        <li>Has doctor</li>
-             <li>Insurance coverage</li>   
+        <li><a href="#">Has doctor</a></li>
+        <li><a href="#">Insurance coverage</a></li>
       </ul>
-      <hr>
-          <p>Similar indicators on other data sources</p>
+
+      <h3>Similar indicators on other data sources</h3>
       <ul>
-        <li>Lorem ipsum</li>
-             <li>Dolores quid proquiat</li>   
+        <li><a href="#" class="ext">Lorem ipsum</a></li>
+        <li><a href="#" class="ext">Dolores quid proquiat</a></li>
       </ul>
-    </div>
+    </nav>
   </aside>
 
   <main>
@@ -160,6 +194,34 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
     <section class="panel" id="panel-group" role="tabpanel" aria-labelledby="tab-group" hidden>
       <div class="placeholder">By group view goes here</div>
     </section>
+
+    <footer class="site-footer">
+      <h2>Related publications</h2>
+      <div class="pubs">
+        <a class="pub report" href="#">
+          <span class="type">Report</span>
+          <h3>Self-reported health across NYC neighborhoods</h3>
+          <p>A neighborhood-level look at how New Yorkers rate their own health, and where the gaps are widest.</p>
+          <span class="meta">Placeholder · Department of Health</span>
+          <span class="go">Read the report</span>
+        </a>
+        <a class="pub brief" href="#">
+          <span class="type">Data brief</span>
+          <h3>Health status and access to care</h3>
+          <p>How having a personal doctor and insurance coverage relate to reporting good health.</p>
+          <span class="meta">Placeholder · Data brief</span>
+          <span class="go">Read the brief</span>
+        </a>
+        <a class="pub article" href="#">
+          <span class="type">Journal article</span>
+          <h3>Trends in self-rated health in a large city</h3>
+          <p>Research on how self-rated health has changed over time and across population groups.</p>
+          <span class="meta">Placeholder · Peer-reviewed</span>
+          <span class="go">Read the article</span>
+        </a>
+      </div>
+      <p class="foot-note">Publication titles and links are placeholders.</p>
+    </footer>
   </main>
 </div>
 
