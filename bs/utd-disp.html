@@ -14,8 +14,6 @@
   --good-bg:#fdf0c4; --good-fg:#6b4a05; --good-dot:#e0a800;
   --fp-bg:#fbd9d3; --fp-fg:#8a1f11; --fp-dot:#d9412b;
   --pub-report:#0b6bcb; --pub-brief:#7a3db8; --pub-article:#b45309;
-  /* light */  --g1:#2f6fdb; --g2:#d9622b; --g3:#8b5cc9; --g4:#1f9d8a; --g5:#b8860b;
-/* dark  */  --g1:#6ea2ff; --g2:#f08a57; --g3:#b99aea; --g4:#4cc4b0; --g5:#e0b94a;
 }
 @media (prefers-color-scheme:dark){
   :root{
@@ -120,6 +118,7 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
 .mini .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .mini .badge{padding:3px 10px;font-size:13px}
 .mini .now{font-weight:600;font-variant-numeric:tabular-nums}
+.mini .gname{font-weight:600}
 .mini svg{width:100%;height:auto;display:block}
 .chart-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 16px 8px}
 .chart-head{margin:0 0 6px;color:var(--muted);font-size:15px}
@@ -219,28 +218,28 @@ h1{margin:0 0 6px;font:600 clamp(28px,4vw,40px)/1.15 Georgia,serif}
       <p class="map-note">Boundaries: NYC DOHMH UHF 42 neighborhoods (github.com/nycehs/NYC_geography). Map values are placeholders.</p>
     </section>
 
-  <section class="panel" id="panel-time" role="tabpanel" aria-labelledby="tab-time" hidden>
-    <div class="controls">
-      <div class="seg" role="group" aria-label="Break down by">
-        <button type="button" class="seg-btn" data-mode="answer" aria-pressed="true">By answer</button>
-        <button type="button" class="seg-btn" data-mode="group" aria-pressed="false">By group</button>
+    <section class="panel" id="panel-time" role="tabpanel" aria-labelledby="tab-time" hidden>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Break down by">
+          <button type="button" class="seg-btn" data-mode="answer" aria-pressed="true">By answer</button>
+          <button type="button" class="seg-btn" data-mode="group" aria-pressed="false">By group</button>
+        </div>
+        <div class="group-pick" id="groupPick" hidden>
+          <label for="groupSel">Group</label>
+          <select id="groupSel"></select>
+        </div>
       </div>
-      <div class="group-pick" id="groupPick" hidden>
-        <label for="groupSel">Group</label>
-        <select id="groupSel"></select>
+
+      <div class="chart-card" id="timeCard">
+        <p class="chart-head" id="chartHead"></p>
+        <div class="chart-key" id="chartKey" aria-hidden="true"></div>
+        <div id="timeChart"></div>
       </div>
-    </div>
 
-    <div class="chart-card" id="timeCard">
-      <p class="chart-head" id="chartHead"></p>
-      <div class="chart-key" id="chartKey" aria-hidden="true"></div>
-      <div id="timeChart"></div>
-    </div>
-
-    <h3 class="sub">All responses</h3>
-    <div class="multiples" id="multiples"></div>
-    <p class="map-note">Click a small chart to show it above. Each small chart uses its own scale. Survey years and values are placeholders; the latest year matches the Overview tab.</p>
-  </section>
+      <h3 class="sub" id="multiHead">All responses</h3>
+      <div class="multiples" id="multiples"></div>
+      <p class="map-note">Click a small chart to show it above. By answer, each small chart has its own scale; by group, all panels share one scale so they can be compared. Survey years and values are placeholders; the latest year matches the Overview tab.</p>
+    </section>
 
     <section class="panel" id="panel-group" role="tabpanel" aria-labelledby="tab-group" hidden>
       <div class="placeholder">By group view goes here</div>
@@ -359,7 +358,6 @@ function draw(){
 }
 
 /* ---------- Over time ---------- */
-/* ---------- Over time ---------- */
 const YEARS = [2015, 2017, 2019, 2021, 2023]; // placeholder survey years
 const TREND = {
   excellent:[24.5,23.8,22.6,21.9,21.0],
@@ -385,8 +383,7 @@ const GROUPS = {
   edu:  {label:'Education level', cats:['Less than HS','HS graduate','Some college','College grad']},
   boro: {label:'Borough',         cats:['Bronx','Brooklyn','Manhattan','Queens','Staten Island']}
 };
-let mode = 'answer', groupId = 'age';
-const gcol = c => 'var(--g'+(c+1)+')';
+let mode = 'answer', groupId = 'age', gcat = 0; // gcat = which group category is shown in the main chart
 
 // Placeholder group trends: NYC trend + a seeded offset per category.
 function groupSeries(row, gid){
@@ -402,41 +399,63 @@ function groupSeries(row, gid){
   return row.grp[gid];
 }
 
+// One group category -> four answer lines (scaled so the answers sum to 100% each year)
+function catLines(gid, c){
+  const raw = ROWS.map(r=>groupSeries(r,gid)[c]);
+  const tot = YEARS.map((_,p)=>raw.reduce((s,v)=>s+v[p],0));
+  return ROWS.map((r,i)=>({name:r.name, color:'var(--'+r.key+'-dot)', vals:raw[i].map((v,p)=>v*100/tot[p])}));
+}
+
 // Controls
 const groupSel = document.getElementById('groupSel');
 groupSel.innerHTML = Object.entries(GROUPS).map(([k,g])=>'<option value="'+k+'">'+g.label+'</option>').join('')
   + '<option disabled>etc. (more groups to come)</option>';
-groupSel.addEventListener('change',()=>{ groupId = groupSel.value; drawTime(); });
+groupSel.addEventListener('change',()=>{ groupId = groupSel.value; gcat = 0; buildMultiples(); drawTime(); });
 document.querySelectorAll('.seg-btn').forEach(b=>b.addEventListener('click',()=>{
-  mode = b.dataset.mode;
+  mode = b.dataset.mode; gcat = 0;
   document.querySelectorAll('.seg-btn').forEach(x=>x.setAttribute('aria-pressed', x===b));
   document.getElementById('groupPick').hidden = mode!=='group';
-  drawTime();
+  buildMultiples(); drawTime();
 }));
 
-// Small multiples (one per response; click to show in the main chart)
+// Small multiples: By answer = one panel per response; By group = one panel per category
 const multi = document.getElementById('multiples');
-ROWS.forEach(r=>{
-  const b = document.createElement('button');
-  b.type = 'button'; b.className = 'mini'; b.dataset.key = r.key;
-  b.innerHTML = '<span class="top"><span class="badge '+r.key+'">'+r.name+'</span><span class="now"></span></span><span class="plot"></span>';
-  b.addEventListener('click',()=>select(r.key));
-  multi.appendChild(b);
-});
+function buildMultiples(){
+  const grp = mode==='group';
+  document.getElementById('multiHead').textContent = grp ? 'All groups: '+GROUPS[groupId].label : 'All responses';
+  multi.innerHTML = '';
+  (grp ? GROUPS[groupId].cats : ROWS).forEach((it,i)=>{
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'mini';
+    b.innerHTML = grp
+      ? '<span class="top"><span class="gname">'+it+'</span></span><span class="plot"></span>'
+      : '<span class="top"><span class="badge '+it.key+'">'+it.name+'</span><span class="now"></span></span><span class="plot"></span>';
+    b.addEventListener('click',()=>{ if(grp){ gcat = i; drawTime(); } else select(it.key); });
+    multi.appendChild(b);
+  });
+}
+buildMultiples();
 
-function miniSVG(r){
+function miniSVG(i){
   const grp = mode==='group', n = YEARS.length;
-  const lines = grp ? groupSeries(r,groupId).map((v,c)=>({vals:v,color:gcol(c)}))
-                    : [{vals:r.series.map(s=>s.mean), color:'var(--'+r.key+'-dot)'}];
-  const all = lines.flatMap(l=>l.vals);
-  let lo = Math.min(...all), hi = Math.max(...all);
+  let lines, lo, hi;
+  if(grp){
+    lines = catLines(groupId,i);
+    // shared scale across all group panels so they can be compared
+    const all = GROUPS[groupId].cats.flatMap((_,c)=>catLines(groupId,c).flatMap(L=>L.vals));
+    lo = Math.min(...all); hi = Math.max(...all);
+  } else {
+    const r = ROWS[i];
+    lines = [{vals:r.series.map(s=>s.mean), color:'var(--'+r.key+'-dot)'}];
+    lo = Math.min(...lines[0].vals); hi = Math.max(...lines[0].vals);
+  }
   const pad = Math.max(1.5,(hi-lo)*0.2); lo -= pad; hi += pad;
   const W=260, H=104, l=8, rr=8, t=14, b=18, iw=W-l-rr, ih=H-t-b;
-  const x = i=>l+iw*i/(n-1), y = v=>t+ih-(v-lo)/(hi-lo)*ih;
+  const x = k=>l+iw*k/(n-1), y = v=>t+ih-(v-lo)/(hi-lo)*ih;
   let g = '';
   lines.forEach(L=>{
     g += '<polyline fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="stroke:'+L.color+'" points="'+
-         L.vals.map((v,i)=>x(i)+','+y(v)).join(' ')+'"/>'+
+         L.vals.map((v,k)=>x(k)+','+y(v)).join(' ')+'"/>'+
          '<circle cx="'+x(n-1)+'" cy="'+y(L.vals[n-1])+'" r="3.5" style="fill:'+L.color+'"/>';
   });
   if(!grp){
@@ -449,33 +468,31 @@ function miniSVG(r){
   return '<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+g+'</svg>';
 }
 
-// Main chart: By answer = distribution (violin) + mean line; By group = one line per category.
+// Main chart: By answer = distribution (violin) + mean line; By group = the four answers for one category.
 function drawTime(){
+  const grp = mode==='group', G = GROUPS[groupId];
   multi.querySelectorAll('.mini').forEach((b,i)=>{
-    const r = ROWS[i];
-    b.setAttribute('aria-pressed', r===current);
-    b.querySelector('.now').textContent = r.mean.toFixed(1)+'%';
-    b.querySelector('.plot').innerHTML = miniSVG(r);
+    b.setAttribute('aria-pressed', grp ? i===gcat : ROWS[i]===current);
+    if(!grp) b.querySelector('.now').textContent = ROWS[i].mean.toFixed(1)+'%';
+    b.querySelector('.plot').innerHTML = miniSVG(i);
   });
 
-  const grp = mode==='group', G = GROUPS[groupId];
-  document.getElementById('chartHead').innerHTML = '<b>'+current.name+'</b>'+
-    (grp ? ' by '+G.label.toLowerCase()+': mean over time' : ': NYC mean over time');
+  document.getElementById('chartHead').innerHTML = grp
+    ? '<b>'+G.cats[gcat]+'</b> ('+G.label.toLowerCase()+'): mean over time, all responses'
+    : '<b>'+current.name+'</b>: NYC mean over time';
   document.getElementById('chartKey').innerHTML = grp
-    ? G.cats.map((c,i)=>'<span><i class="sw-line" style="--c:'+gcol(i)+'"></i> '+c+'</span>').join('')+
-      '<span><i class="sw-line" style="--c:var(--ink);opacity:.6"></i> NYC</span>'
+    ? ROWS.map(r=>'<span><i class="sw-line" style="--c:var(--'+r.key+'-dot)"></i> '+r.name+'</span>').join('')
     : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> Distribution across the 42 neighborhoods</span>';
 
   const box = document.getElementById('timeChart'), W = box.clientWidth;
   if(!W) return; // hidden tab: skip until visible
   const H = Math.round(Math.min(440, Math.max(300, W*0.5)));
   const ser = current.series, n = ser.length, key = current.key;
-  const m = {l:46, r:grp?120:16, t:20, b:34}, iw = W-m.l-m.r, ih = H-m.t-m.b;
+  const m = {l:46, r:grp?110:16, t:20, b:34}, iw = W-m.l-m.r, ih = H-m.t-m.b;
 
   let lines = null, lo = 0, hi = MAX, step = 10;
   if(grp){
-    lines = groupSeries(current,groupId).map((v,c)=>({name:G.cats[c], vals:v, color:gcol(c)}));
-    lines.push({name:'NYC', vals:ser.map(s=>s.mean), color:'var(--ink)', dash:'6 4'});
+    lines = catLines(groupId,gcat);
     const all = lines.flatMap(l=>l.vals);
     lo = Math.max(0, Math.floor((Math.min(...all)-2)/5)*5);
     hi = Math.ceil((Math.max(...all)+2)/5)*5;
@@ -520,11 +537,10 @@ function drawTime(){
     });
   } else {
     lines.forEach(l=>{
-      g += '<polyline fill="none" stroke-width="'+(l.dash?2:3)+'" stroke-linejoin="round" stroke-linecap="round"'+
-           (l.dash?' stroke-dasharray="'+l.dash+'"':'')+' style="stroke:'+l.color+'" points="'+
+      g += '<polyline fill="none" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" style="stroke:'+l.color+'" points="'+
            l.vals.map((v,i)=>x(i)+','+y(v)).join(' ')+'"/>';
       l.vals.forEach((v,i)=>{
-        g += '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(l.dash?3:4.5)+'" stroke-width="1.5" style="fill:'+l.color+';stroke:var(--panel)"><title>'+l.name+', '+YEARS[i]+': '+v.toFixed(1)+'%</title></circle>';
+        g += '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4.5" stroke-width="1.5" style="fill:'+l.color+';stroke:var(--panel)"><title>'+l.name+', '+YEARS[i]+': '+v.toFixed(1)+'%</title></circle>';
       });
     });
     // direct labels at the right edge, nudged apart so they don't overlap
@@ -535,8 +551,8 @@ function drawTime(){
     });
   }
 
-  box.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+current.name+
-    (grp?' by '+G.label.toLowerCase():'')+' over '+n+' survey years">'+g+'</svg>';
+  box.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+
+    (grp ? 'All responses for '+G.cats[gcat]+' ('+G.label.toLowerCase()+')' : current.name)+' over '+n+' survey years">'+g+'</svg>';
 }
 new ResizeObserver(drawTime).observe(document.getElementById('timeChart'));
 
