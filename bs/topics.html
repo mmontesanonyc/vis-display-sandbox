@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topics &amp; Indicators</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#6b7385; --border:#e1e4ea; --accent:#2457d6; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; font-size:.9rem; }
+  a.back { display:inline-block; margin-bottom:16px; color:var(--accent); text-decoration:none; font-weight:600; }
+  a.back:hover { text-decoration:underline; }
+  input[type=search] { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; margin-bottom:16px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; cursor:pointer; text-align:left; font:inherit; color:inherit; }
+  .card:hover, .card:focus-visible { border-color:var(--accent); outline:none; box-shadow:0 0 0 2px rgba(36,87,214,.15); }
+  .card .t { font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .card .n { color:var(--muted); font-size:.82rem; margin-top:6px; }
+  button.more { margin:18px auto 0; display:block; padding:9px 18px; border:1px solid var(--border); background:var(--card); border-radius:8px; cursor:pointer; font:inherit; }
+  button.more:hover { border-color:var(--accent); color:var(--accent); }
+  .row { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .row .name { margin-bottom:8px; }
+  .pill { display:inline-block; font-size:.75rem; padding:2px 10px; border-radius:999px; margin:0 6px 4px 0; }
+  .pill.area { background:#e6efff; color:#1b449c; }
+  .pill.product { background:#e8f6ec; color:#1f6b36; }
+  .msg { padding:16px; background:#fff3f0; border:1px solid #f1c2b8; border-radius:8px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <div id="app"></div>
+</main>
+
+<script>
+const CSV_URL = "https://gist.githubusercontent.com/mmontesanonyc/d30adff80c119e7287b25ba558ee469f/raw/3b6a3e5ca4544fce83151935abbdb6974c024a35/eq-list.csv";
+// Column header names (case-insensitive) — change here if your CSV differs
+const COLS = { topic: "topic", indicator: "indicator", area: "area", product: "product" };
+const INITIAL_VISIBLE = 12;
+
+const app = document.getElementById("app");
+let rows = [];          // {topic, indicator, area, product}
+let topics = [];        // [{name, items}]
+let expanded = false;
+let filter = "";
+
+function parseCSV(text) {
+  const out = []; let row = [], cur = "", q = false;
+  text = text.replace(/^\uFEFF/, "");
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i+1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i+1] === "\n") i++;
+      row.push(cur); cur = "";
+      if (row.some(v => v.trim() !== "")) out.push(row);
+      row = [];
+    } else cur += c;
+  }
+  row.push(cur);
+  if (row.some(v => v.trim() !== "")) out.push(row);
+  return out;
+}
+
+const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+function detectColumns(headers) {
+  const h = headers.map(norm);
+  const idx = {};
+  for (const k in COLS) {
+    const key = norm(COLS[k]);
+    let i = h.indexOf(key);                          // exact match
+    if (i < 0) i = h.findIndex(x => x.includes(key)); // header contains the word
+    if (i < 0) i = h.findIndex(x => x && key.includes(x)); // word contains header
+    idx[k] = i;
+  }
+  return idx;
+}
+
+function load(text, forcedIdx) {
+  const table = parseCSV(text);
+  // Use the first row that looks like a header (in case of title rows above it)
+  let hr = table.findIndex((r, n) => n < 10 && detectColumns(r).topic >= 0 && detectColumns(r).indicator >= 0);
+  if (hr < 0) hr = 0;
+  const headers = table[hr].map(h => h.trim());
+  const idx = forcedIdx || detectColumns(headers);
+  if (idx.topic < 0 || idx.indicator < 0) {
+    return showMapper(text, headers);
+  }
+  table.splice(0, hr);
+  const get = (r, i) => i >= 0 ? (r[i] || "").trim() : "";
+  rows = table.slice(1).map(r => ({
+    topic: get(r, idx.topic), indicator: get(r, idx.indicator),
+    area: get(r, idx.area), product: get(r, idx.product)
+  })).filter(r => r.topic);
+
+  // A cell can hold several comma-separated topics; list the row under each one.
+  // Topics are grouped case-insensitively, keeping the first spelling seen.
+  const map = new Map();   // lowercase key -> {name, items}
+  rows.forEach(r => {
+    const seen = new Set();
+    r.topic.split(",").map(s => s.trim()).filter(Boolean).forEach(name => {
+      const key = name.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (!map.has(key)) map.set(key, { name, items: [] });
+      map.get(key).items.push(r);
+    });
+  });
+  topics = [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  render();
+}
+
+function showMapper(text, headers) {
+  app.innerHTML = "";
+  const d = el("div", "msg");
+  d.appendChild(el("p", null, "Couldn't auto-match the columns. Pick which column from your file is which:"));
+  const sels = {};
+  const labels = { topic: "Topic", indicator: "Indicator", area: "Area", product: "Product" };
+  const guess = detectColumns(headers);
+  for (const k in labels) {
+    const wrap = el("p");
+    wrap.appendChild(el("label", null, labels[k] + ": "));
+    const s = document.createElement("select");
+    const none = new Option("— none —", -1); s.appendChild(none);
+    headers.forEach((h, i) => s.appendChild(new Option(h || `(column ${i + 1})`, i)));
+    s.value = guess[k];
+    sels[k] = s; wrap.appendChild(s); d.appendChild(wrap);
+  }
+  const go = el("button", "more", "Load");
+  go.onclick = () => {
+    const idx = {};
+    for (const k in sels) idx[k] = parseInt(sels[k].value, 10);
+    if (idx.topic < 0 || idx.indicator < 0) return alert("Topic and Indicator are required.");
+    load(text, idx);
+  };
+  d.appendChild(go);
+  app.appendChild(d);
+}
+
+function showError(msg) {
+  app.innerHTML = "";
+  const d = document.createElement("div");
+  d.className = "msg";
+  d.innerHTML = `<p></p><p>You can load the file manually instead:</p><input type="file" accept=".csv">`;
+  d.querySelector("p").textContent = msg;
+  d.querySelector("input").addEventListener("change", e => {
+    const f = e.target.files[0]; if (f) f.text().then(load);
+  });
+  app.appendChild(d);
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function render() {
+  const sel = decodeURIComponent(location.hash.slice(1));
+  const topic = topics.find(t => t.name === sel);
+  topic ? renderTopic(topic) : renderTopics();
+}
+
+function renderTopics() {
+  app.innerHTML = "";
+  app.appendChild(el("h1", null, "Topics"));
+  app.appendChild(el("p", "sub", `${topics.length} topics · ${rows.length} indicators`));
+
+  const search = el("input");
+  search.type = "search"; search.placeholder = "Filter topics…"; search.value = filter;
+  app.appendChild(search);
+
+  const grid = el("div", "grid");
+  app.appendChild(grid);
+  const moreWrap = el("div");
+  app.appendChild(moreWrap);
+
+  function draw() {
+    const list = topics.filter(t => t.name.toLowerCase().includes(filter.toLowerCase()));
+    const show = (expanded || filter) ? list : list.slice(0, INITIAL_VISIBLE);
+    grid.innerHTML = ""; moreWrap.innerHTML = "";
+    show.forEach(t => {
+      const b = el("button", "card");
+      b.appendChild(el("div", "t", t.name));
+      b.appendChild(el("div", "n", `${t.items.length} indicator${t.items.length === 1 ? "" : "s"}`));
+      b.title = t.name;
+      b.onclick = () => { location.hash = encodeURIComponent(t.name); };
+      grid.appendChild(b);
+    });
+    if (!list.length) grid.appendChild(el("p", "sub", "No matching topics."));
+    if (!filter && list.length > INITIAL_VISIBLE) {
+      const m = el("button", "more", expanded ? "Show fewer" : `Show all ${list.length} topics`);
+      m.onclick = () => { expanded = !expanded; draw(); };
+      moreWrap.appendChild(m);
+    }
+  }
+  search.addEventListener("input", () => { filter = search.value; draw(); });
+  draw();
+}
+
+function renderTopic(t) {
+  app.innerHTML = "";
+  const back = el("a", "back", "← Back to Topics");
+  back.href = "#";
+  app.appendChild(back);
+  app.appendChild(el("h1", null, t.name));
+  app.appendChild(el("p", "sub", `${t.items.length} indicator${t.items.length === 1 ? "" : "s"}`));
+  t.items.forEach(r => {
+    const row = el("div", "row");
+    row.appendChild(el("div", "name", r.indicator || "(no indicator)"));
+    if (r.area) row.appendChild(el("span", "pill area", r.area));
+    if (r.product) row.appendChild(el("span", "pill product", r.product));
+    app.appendChild(row);
+  });
+  window.scrollTo(0, 0);
+}
+
+window.addEventListener("hashchange", () => { if (rows.length) render(); });
+
+app.textContent = "Loading…";
+fetch(CSV_URL)
+  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+  .then(load)
+  .catch(err => showError("Couldn't load the CSV (" + err.message + ")."));
+</script>
+</body>
+</html>
