@@ -13,7 +13,10 @@
   .sub { color:var(--muted); margin:0 0 20px; font-size:.9rem; }
   a.back { display:inline-block; margin-bottom:16px; color:var(--accent); text-decoration:none; font-weight:600; }
   a.back:hover { text-decoration:underline; }
-  input[type=search] { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; margin-bottom:16px; }
+  input[type=search] { flex:1; min-width:0; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:1rem; }
+  .toolbar { display:flex; gap:8px; margin-bottom:16px; }
+  button.shuffle { padding:0 16px; border:1px solid var(--border); background:var(--card); border-radius:8px; cursor:pointer; font:inherit; white-space:nowrap; }
+  button.shuffle:hover { border-color:var(--accent); color:var(--accent); }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
   .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; cursor:pointer; text-align:left; font:inherit; color:inherit;
           display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
@@ -47,6 +50,7 @@ let rows = [];          // {topic, indicator, area, product}
 let topics = [];        // [{name, items}]
 let expanded = false;
 let filter = "";
+let sample = null;      // array of randomly chosen topics, or null for alphabetical
 
 function parseCSV(text) {
   const out = []; let row = [], cur = "", q = false;
@@ -68,6 +72,15 @@ function parseCSV(text) {
   row.push(cur);
   if (row.some(v => v.trim() !== "")) out.push(row);
   return out;
+}
+
+// Sentence case: first letter capitalised, the rest lowercased,
+// but all-caps words (COVID-19, HIV, NYC) are left alone.
+function sentenceCase(str) {
+  const out = str.split(/(\s+)/).map(w =>
+    (w.length > 1 && /[A-Z]/.test(w) && w === w.toUpperCase() && /[A-Z]{2}/.test(w)) ? w : w.toLowerCase()
+  ).join("");
+  return out.charAt(0).toUpperCase() + out.slice(1);
 }
 
 const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -111,7 +124,7 @@ function load(text, forcedIdx) {
       const key = name.toLowerCase();
       if (seen.has(key)) return;
       seen.add(key);
-      if (!map.has(key)) map.set(key, { name, items: [] });
+      if (!map.has(key)) map.set(key, { name: sentenceCase(name), items: [] });
       map.get(key).items.push(r);
     });
   });
@@ -176,9 +189,14 @@ function renderTopics() {
   app.appendChild(el("h1", null, "Topics"));
   app.appendChild(el("p", "sub", `${topics.length} topics · ${rows.length} indicators and datasets`));
 
+  const toolbar = el("div", "toolbar");
   const search = el("input");
   search.type = "search"; search.placeholder = "Filter topics…"; search.value = filter;
-  app.appendChild(search);
+  const shuffleBtn = el("button", "shuffle", "🔀");
+  shuffleBtn.title = "Show 12 random topics";
+  toolbar.appendChild(search);
+  toolbar.appendChild(shuffleBtn);
+  app.appendChild(toolbar);
 
   const grid = el("div", "grid");
   app.appendChild(grid);
@@ -187,7 +205,7 @@ function renderTopics() {
 
   function draw() {
     const list = topics.filter(t => t.name.toLowerCase().includes(filter.toLowerCase()));
-    const show = (expanded || filter) ? list : list.slice(0, INITIAL_VISIBLE);
+    const show = (expanded || filter) ? list : (sample || list.slice(0, INITIAL_VISIBLE));
     grid.innerHTML = ""; moreWrap.innerHTML = "";
     show.forEach(t => {
       const b = el("button", "card");
@@ -207,6 +225,16 @@ function renderTopics() {
     }
   }
   search.addEventListener("input", () => { filter = search.value; draw(); });
+  shuffleBtn.onclick = () => {
+    const a = topics.slice();
+    for (let i = a.length - 1; i > 0; i--) {       // Fisher–Yates shuffle
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    sample = a.slice(0, INITIAL_VISIBLE);
+    expanded = false; filter = ""; search.value = "";
+    draw();
+  };
   draw();
 }
 
