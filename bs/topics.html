@@ -21,6 +21,15 @@
   .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; cursor:pointer; text-align:left; font:inherit; color:inherit;
           display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   .card:hover, .card:focus-visible { border-color:var(--accent); outline:none; box-shadow:0 0 0 2px rgba(36,87,214,.15); }
+  .card .star { flex-shrink:0; background:none; border:0; padding:0; margin:0; cursor:pointer; font-size:1.15rem; line-height:1.2; color:#b6bcc9; }
+  .card .star:hover { color:#e8a400; }
+  .card .star.on { color:#e8a400; }
+  .favs { margin-bottom:20px; }
+  .favs-head { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .favs-head h2 { font-size:1rem; margin:0; }
+  .favs-count { color:var(--muted); font-size:.85rem; }
+  .favs-note { color:#b3412b; font-size:.85rem; }
+  .favs .sub { grid-column:1/-1; margin:0; }
   .card .t { flex:1; min-width:0; font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .card .badge { flex-shrink:0; margin-left:auto; background:#eef0f4; color:var(--muted); font-size:.75rem; font-weight:600; line-height:1; padding:4px 8px; border-radius:999px; }
   button.more { margin:18px auto 0; display:block; padding:9px 18px; border:1px solid var(--border); background:var(--card); border-radius:8px; cursor:pointer; font:inherit; }
@@ -50,6 +59,22 @@ let rows = [];          // {topic, indicator, area, product}
 let topics = [];        // [{name, items}]
 let expanded = false;
 let filter = "";
+const FAV_KEY = "topics-favorites", MAX_FAVS = 4;
+function loadFavs() { try { const a = JSON.parse(localStorage.getItem(FAV_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function saveFavs() { try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {} }
+let favs = loadFavs();  // topic keys (lowercase names), in the order they were starred
+const favTopics = () => favs.map(k => topics.find(t => t.key === k)).filter(Boolean).slice(0, MAX_FAVS);
+const isFav = t => favs.includes(t.key);
+function toggleFav(t) {   // returns false if blocked by the max
+  if (isFav(t)) favs = favTopics().map(x => x.key).filter(k => k !== t.key);
+  else {
+    const cur = favTopics();
+    if (cur.length >= MAX_FAVS) return false;
+    favs = [...cur.map(x => x.key), t.key];
+  }
+  saveFavs();
+  return true;
+}
 let sample = null;      // array of randomly chosen topics, or null for alphabetical
 
 function parseCSV(text) {
@@ -124,7 +149,7 @@ function load(text, forcedIdx) {
       const key = name.toLowerCase();
       if (seen.has(key)) return;
       seen.add(key);
-      if (!map.has(key)) map.set(key, { name: sentenceCase(name), items: [] });
+      if (!map.has(key)) map.set(key, { key, name: sentenceCase(name), items: [] });
       map.get(key).items.push(r);
     });
   });
@@ -189,10 +214,20 @@ function renderTopics() {
   app.appendChild(el("h1", null, "Topics"));
   app.appendChild(el("p", "sub", `${topics.length} topics · ${rows.length} indicators and datasets`));
 
+  // Favorites row
+  const favSec = el("section", "favs");
+  const favHead = el("div", "favs-head");
+  const favCount = el("span", "favs-count");
+  const favNote = el("span", "favs-note");
+  favHead.append(el("h2", null, "★ Favorites"), favCount, favNote);
+  const favGrid = el("div", "grid");
+  favSec.append(favHead, favGrid);
+  app.appendChild(favSec);
+
   const toolbar = el("div", "toolbar");
   const search = el("input");
   search.type = "search"; search.placeholder = "Filter topics…"; search.value = filter;
-  const shuffleBtn = el("button", "shuffle", "🔀");
+  const shuffleBtn = el("button", "shuffle", "🔀 Shuffle");
   shuffleBtn.title = "Show 12 random topics";
   toolbar.appendChild(search);
   toolbar.appendChild(shuffleBtn);
@@ -203,20 +238,57 @@ function renderTopics() {
   const moreWrap = el("div");
   app.appendChild(moreWrap);
 
+  let noteTimer;
+  function note(msg) {
+    favNote.textContent = msg;
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => { favNote.textContent = ""; }, 3500);
+  }
+
+  function makeCard(t) {
+    const c = el("div", "card");
+    c.tabIndex = 0; c.setAttribute("role", "button"); c.title = t.name;
+    const fav = isFav(t);
+    const star = el("button", "star" + (fav ? " on" : ""), fav ? "★" : "☆");
+    star.type = "button";
+    star.setAttribute("aria-pressed", String(fav));
+    star.setAttribute("aria-label", (fav ? "Remove from favorites: " : "Add to favorites: ") + t.name);
+    star.title = fav ? "Remove from favorites" : "Add to favorites";
+    star.onclick = e => {
+      e.stopPropagation();
+      if (!toggleFav(t)) note(`You can have up to ${MAX_FAVS} favorites — unstar one first.`);
+      draw();
+    };
+    const badge = el("span", "badge", String(t.items.length));
+    badge.title = `${t.items.length} indicator${t.items.length === 1 ? "" : "s"}`;
+    c.append(star, el("div", "t", t.name), badge);
+    const open = () => { location.hash = encodeURIComponent(t.name); };
+    c.onclick = open;
+    c.onkeydown = e => { if (e.target === c && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(); } };
+    return c;
+  }
+
   function draw() {
-    const list = topics.filter(t => t.name.toLowerCase().includes(filter.toLowerCase()));
-    const show = (expanded || filter) ? list : (sample || list.slice(0, INITIAL_VISIBLE));
+    // favorites row
+    const favList = favTopics();
+    favCount.textContent = `${favList.length}/${MAX_FAVS}`;
+    favGrid.innerHTML = "";
+    if (!favList.length) favGrid.appendChild(el("p", "sub", `Click ☆ on any topic to pin it here (up to ${MAX_FAVS}).`));
+    else favList.forEach(t => favGrid.appendChild(makeCard(t)));
+
+    // main grid: favorites live in their own row, except when filtering
+    const q = filter.toLowerCase();
+    const base = filter ? topics : topics.filter(t => !isFav(t));
+    const list = base.filter(t => t.name.toLowerCase().includes(q));
+    let show;
+    if (expanded || filter) show = list;
+    else if (sample) {
+      show = sample.filter(t => !isFav(t));
+      for (const t of list) { if (show.length >= INITIAL_VISIBLE) break; if (!show.includes(t)) show.push(t); }
+    } else show = list.slice(0, INITIAL_VISIBLE);
+
     grid.innerHTML = ""; moreWrap.innerHTML = "";
-    show.forEach(t => {
-      const b = el("button", "card");
-      b.appendChild(el("div", "t", t.name));
-      const badge = el("span", "badge", String(t.items.length));
-      badge.title = `${t.items.length} indicator${t.items.length === 1 ? "" : "s"}`;
-      b.appendChild(badge);
-      b.title = t.name;
-      b.onclick = () => { location.hash = encodeURIComponent(t.name); };
-      grid.appendChild(b);
-    });
+    show.forEach(t => grid.appendChild(makeCard(t)));
     if (!list.length) grid.appendChild(el("p", "sub", "No matching topics."));
     if (!filter && list.length > INITIAL_VISIBLE) {
       const m = el("button", "more", expanded ? "Show fewer" : `Show all ${list.length} topics`);
@@ -224,9 +296,10 @@ function renderTopics() {
       moreWrap.appendChild(m);
     }
   }
+
   search.addEventListener("input", () => { filter = search.value; draw(); });
   shuffleBtn.onclick = () => {
-    const a = topics.slice();
+    const a = topics.filter(t => !isFav(t));
     for (let i = a.length - 1; i > 0; i--) {       // Fisher–Yates shuffle
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
