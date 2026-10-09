@@ -39,6 +39,13 @@
   .pill { display:inline-block; font-size:.75rem; padding:2px 10px; border-radius:999px; margin:0 6px 4px 0; }
   .pill.area { background:#e6efff; color:#1b449c; }
   .pill.product { background:#e8f6ec; color:#1f6b36; }
+  .sec { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:24px 0 10px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+  .tcard { background:var(--card); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:10px; padding:14px; }
+  .tcard .name { font-weight:600; margin-bottom:8px; }
+  .cards.minor { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
+  .pcard { background:#fafbfc; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:.85rem; }
+  .pcard .name { margin-bottom:6px; }
   .msg { padding:16px; background:#fff3f0; border:1px solid #f1c2b8; border-radius:8px; }
   .hidden { display:none; }
 </style>
@@ -49,9 +56,9 @@
 </main>
 
 <script>
-const CSV_URL = "https://gist.githubusercontent.com/mmontesanonyc/d30adff80c119e7287b25ba558ee469f/raw/b2ae5564ebb873835b15516554622aa0652b0e8b/eq-list.csv";
+const CSV_URL = "https://gist.githubusercontent.com/mmontesanonyc/80d84dd27324dfb60f1b5f826302a1c0/raw/b2f4062ccd6ff8756f99310e8f2b53caaa666d0d/data-list.csv";
 // Column header names (case-insensitive) — change here if your CSV differs
-const COLS = { topic: "Topics", indicator: "Title", area: "Area", product: "Product" };
+const COLS = { topic: "Topics", indicator: "Title", area: "Area", product: "Product", type: "Type" };
 const INITIAL_VISIBLE = 12;
 
 const app = document.getElementById("app");
@@ -135,9 +142,14 @@ function load(text, forcedIdx) {
   }
   table.splice(0, hr);
   const get = (r, i) => i >= 0 ? (r[i] || "").trim() : "";
+  // If Topics is the last column and its list isn't quoted in the CSV, the extra
+  // comma-separated topics spill into additional cells — join them back together.
+  let lastCol = headers.length - 1;
+  while (lastCol > 0 && !headers[lastCol]) lastCol--;
+  const topicCell = r => idx.topic === lastCol ? r.slice(idx.topic).join(",") : get(r, idx.topic);
   rows = table.slice(1).map(r => ({
-    topic: get(r, idx.topic), indicator: get(r, idx.indicator),
-    area: get(r, idx.area), product: get(r, idx.product)
+    topic: topicCell(r), indicator: get(r, idx.indicator),
+    area: get(r, idx.area), product: get(r, idx.product), type: get(r, idx.type)
   })).filter(r => r.topic);
 
   // A cell can hold several comma-separated topics; list the row under each one.
@@ -145,7 +157,7 @@ function load(text, forcedIdx) {
   const map = new Map();   // lowercase key -> {name, items}
   rows.forEach(r => {
     const seen = new Set();
-    r.topic.split(",").map(s => s.trim()).filter(Boolean).forEach(name => {
+    r.topic.split(/[,;|\n]+/).map(s => s.trim()).filter(Boolean).forEach(name => {
       const key = name.toLowerCase();
       if (seen.has(key)) return;
       seen.add(key);
@@ -162,7 +174,7 @@ function showMapper(text, headers) {
   const d = el("div", "msg");
   d.appendChild(el("p", null, "Couldn't auto-match the columns. Pick which column from your file is which:"));
   const sels = {};
-  const labels = { topic: "Topic", indicator: "Indicator", area: "Area", product: "Product" };
+  const labels = { topic: "Topic", indicator: "Indicator", area: "Area", product: "Product", type: "Type" };
   const guess = detectColumns(headers);
   for (const k in labels) {
     const wrap = el("p");
@@ -260,7 +272,7 @@ function renderTopics() {
       draw();
     };
     const badge = el("span", "badge", String(t.items.length));
-    badge.title = `${t.items.length} indicator${t.items.length === 1 ? "" : "s"}`;
+    badge.title = `${t.items.length} item${t.items.length === 1 ? "" : "s"}`;
     c.append(star, el("div", "t", t.name), badge);
     const open = () => { location.hash = encodeURIComponent(t.name); };
     c.onclick = open;
@@ -311,20 +323,70 @@ function renderTopics() {
   draw();
 }
 
+// Which section a row belongs in, based on its Type value
+function kindOf(type) {
+  const p = (type || "").trim().toLowerCase();
+  if (/^tool/.test(p)) return "tool";
+  if (/^publication/.test(p)) return "publication";
+  return "indicator";   // "Indicator" and anything blank/unrecognised go in the main list
+}
+
 function renderTopic(t) {
   app.innerHTML = "";
   const back = el("a", "back", "← Back to Topics");
   back.href = "#";
   app.appendChild(back);
   app.appendChild(el("h1", null, t.name));
-  app.appendChild(el("p", "sub", `${t.items.length} indicator${t.items.length === 1 ? "" : "s"}`));
-  t.items.forEach(r => {
-    const row = el("div", "row");
-    row.appendChild(el("div", "name", r.indicator || "(no indicator)"));
-    if (r.area) row.appendChild(el("span", "pill area", r.area));
-    if (r.product) row.appendChild(el("span", "pill product", r.product));
-    app.appendChild(row);
-  });
+
+  const tools = t.items.filter(r => kindOf(r.type) === "tool");
+  const inds  = t.items.filter(r => kindOf(r.type) === "indicator");
+  const pubs  = t.items.filter(r => kindOf(r.type) === "publication");
+  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const counts = [];
+  if (tools.length) counts.push(plural(tools.length, "tool"));
+  if (inds.length) counts.push(plural(inds.length, "indicator"));
+  if (pubs.length) counts.push(plural(pubs.length, "publication"));
+  app.appendChild(el("p", "sub", counts.join(" · ")));
+
+  const multi = [tools, inds, pubs].filter(a => a.length).length > 1;
+
+  // Tools: prominent cards above the list
+  if (tools.length) {
+    app.appendChild(el("h2", "sec", "Tools"));
+    const g = el("div", "cards");
+    tools.forEach(r => {
+      const c = el("div", "tcard");
+      c.appendChild(el("div", "name", r.indicator || "(untitled)"));
+      if (r.area) c.appendChild(el("span", "pill area", r.area));
+      g.appendChild(c);
+    });
+    app.appendChild(g);
+  }
+
+  // Indicators: the row list
+  if (inds.length) {
+    if (multi) app.appendChild(el("h2", "sec", "Indicators"));
+    inds.forEach(r => {
+      const row = el("div", "row");
+      row.appendChild(el("div", "name", r.indicator || "(no indicator)"));
+      if (r.area) row.appendChild(el("span", "pill area", r.area));
+      if (r.product) row.appendChild(el("span", "pill product", r.product));
+      app.appendChild(row);
+    });
+  }
+
+  // Publications: minor cards below the list
+  if (pubs.length) {
+    app.appendChild(el("h2", "sec", "Publications"));
+    const g = el("div", "cards minor");
+    pubs.forEach(r => {
+      const c = el("div", "pcard");
+      c.appendChild(el("div", "name", r.indicator || "(untitled)"));
+      if (r.area) c.appendChild(el("span", "pill area", r.area));
+      g.appendChild(c);
+    });
+    app.appendChild(g);
+  }
   window.scrollTo(0, 0);
 }
 
