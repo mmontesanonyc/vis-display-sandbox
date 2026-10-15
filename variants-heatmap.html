@@ -13,6 +13,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-
 main{max-width:1100px;margin:0 auto;padding:24px 16px}
 h1{font-size:1.25rem;margin:0 0 4px}
 p.sub{color:var(--muted);margin:0 0 16px;font-size:.9rem}
+#msg{color:var(--muted);padding:12px 0}
 .wrap{overflow-x:auto}
 table.dataTable{border-collapse:collapse;width:100%;font-size:.85rem}
 table.dataTable th,table.dataTable td{border:2px solid var(--bg);padding:8px 10px;text-align:center;white-space:nowrap}
@@ -28,38 +29,60 @@ table.dataTable thead th.sorting_desc::after{content:"▼";opacity:.9}
 <body>
 <main>
   <h1>SARS-CoV-2 variants, weekly share of sequences (%)</h1>
-  <p class="sub">Weeks ending 2026, oldest → newest. Click a column header to sort. The week of 7/11 had no data and is omitted.</p>
+  <p class="sub">Oldest → newest, left to right. Click a column header to sort.</p>
+  <div id="msg">Loading data…</div>
   <div class="wrap"><table id="t" class="display"></table></div>
   <div class="legend"><span>0%</span><span class="bar"></span><span id="max"></span></div>
 </main>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-const dates=["Jul 4","Jul 18","Jul 25","Aug 1","Aug 8","Aug 15","Aug 22","Aug 29","Sep 5","Sep 12","Sep 19"];
-const rows=[
-["Other",51.598093,44.848427,45.709431,49.922494,40.285693,49.762726,48.989961,52.999064,47.193204,46.215828,49.192653],
-["JN.1",14.45377,11.040447,5.612444,4.621072,7.999234,5.138668,3.10581,2.767262,2.746138,1.360387,2.777291],
-["RW.1",19.981207,25.572995,21.563027,20.967598,28.614428,21.268381,26.765113,17.156518,19.058225,29.456047,28.629381],
-["SW.2",1.498336,5.303839,6.158178,4.439882,3.854982,8.662093,6.745443,6.33926,10.16884,4.49925,4.863432],
-["TA.1",null,null,0.529586,0.27222,0.85527,1.924676,3.408523,10.558206,1.867424,7.646231,6.330917],
-["XFG.6",4.9233,3.57092,8.75483,6.038236,10.764028,5.817053,3.997679,3.827118,6.607043,5.396431,6.233276],
-["XFJ.3",7.545296,9.663373,11.672506,13.738496,7.626365,7.426407,6.987471,6.352576,12.359129,5.425826,1.973051]
-];
+const CSV_URL="https://gist.githubusercontent.com/mmontesanonyc/c1de0ceba956c98e6f5ccdd4fd6a6405/raw/3cb8f4bb7e1708142d1b122fab740890340d1a97/wastewaterData.csv";
+
 const ramp=["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"].map(h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)));
-const MAX=Math.max(...rows.flatMap(r=>r.slice(1).filter(v=>v!==null)));
-document.getElementById("max").textContent=MAX.toFixed(0)+"%";
+let MAX=1;
 function color(v){
   const t=Math.sqrt(v/MAX)*(ramp.length-1), i=Math.min(Math.floor(t),ramp.length-2), f=t-i;
   const c=ramp[i].map((a,k)=>Math.round(a+(ramp[i+1][k]-a)*f));
-  const lum=(0.299*c[0]+0.587*c[1]+0.114*c[2]);
+  const lum=0.299*c[0]+0.587*c[1]+0.114*c[2];
   return {bg:`rgb(${c})`,fg:lum<140?"#fff":"#1f1b2e"};
 }
-$("#t").DataTable({
-  data:rows, paging:false, searching:false, info:false, order:[],
-  columns:[{title:"Variant"},...dates.map(d=>({title:d,orderSequence:["desc","asc"],
-    render:(v,type)=>type==="display"?(v===null?"–":v.toFixed(1)+"%"):(v===null?-1:v),
-    createdCell:(td,v)=>{ if(v===null){td.style.background="var(--blank)";td.style.color="var(--muted)";} else {const c=color(v);td.style.background=c.bg;td.style.color=c.fg;} }
-  }))]
+const toTime=s=>{const [m,d,y]=s.split("/").map(Number);return new Date(y,m-1,d).getTime();};
+const label=s=>{const [m,d,y]=s.split("/");return `${m}/${d}/${y.slice(-2)}`;};
+
+fetch(CSV_URL).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.text();}).then(text=>{
+  const parsed=Papa.parse(text.trim(),{header:true,skipEmptyLines:true,
+    transformHeader:h=>h.trim().toLowerCase()}); // delimiter (comma/tab) is auto-detected
+  const recs=parsed.data.filter(r=>(r.metric||"").trim()==="SARS-CoV-2 variants"
+                                   && (r.submetric||"").trim()!=="No data this week");
+  if(!recs.length) throw new Error("No 'SARS-CoV-2 variants' rows found");
+
+  const dates=[...new Set(recs.map(r=>r.date.trim()))].sort((a,b)=>toTime(a)-toTime(b));
+  const variants=[...new Set(recs.map(r=>r.submetric.trim()))];
+  const lookup={};
+  recs.forEach(r=>{
+    const v=parseFloat(r.value);
+    lookup[r.submetric.trim()+"|"+r.date.trim()]=isNaN(v)?null:v;
+  });
+  const rows=variants.map(name=>[name,...dates.map(d=>{
+    const v=lookup[name+"|"+d]; return v===undefined?null:v;})]);
+
+  MAX=Math.max(...rows.flatMap(r=>r.slice(1).filter(v=>v!==null)));
+  document.getElementById("max").textContent=MAX.toFixed(0)+"%";
+  document.getElementById("msg").remove();
+
+  $("#t").DataTable({
+    data:rows, paging:false, searching:false, info:false, order:[],
+    columns:[{title:"Variant"},...dates.map(d=>({title:label(d),orderSequence:["desc","asc"],
+      render:(v,type)=>type==="display"?(v===null?"–":v.toFixed(1)+"%"):(v===null?-1:v),
+      createdCell:(td,v)=>{
+        if(v===null){td.style.background="var(--blank)";td.style.color="var(--muted)";}
+        else{const c=color(v);td.style.background=c.bg;td.style.color=c.fg;}
+      }}))]
+  });
+}).catch(err=>{
+  document.getElementById("msg").textContent="Couldn't load data: "+err.message;
 });
 </script>
 </body>
