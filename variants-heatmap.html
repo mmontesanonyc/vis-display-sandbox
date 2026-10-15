@@ -20,6 +20,9 @@ table.dataTable thead th:first-child,table.dataTable tbody td:first-child{text-a
 table.dataTable thead th::after{content:"↕";position:absolute;right:5px;opacity:.3;font-size:.75rem}
 table.dataTable thead th.sorting_asc::after{content:"▲";opacity:.9}
 table.dataTable thead th.sorting_desc::after{content:"▼";opacity:.9}
+.dataTables_filter{display:flex;justify-content:flex-end;margin-top:12px}
+.dataTables_filter label{font-size:.85rem;color:var(--muted)}
+.dataTables_filter input{margin-left:8px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
 .legend{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:.8rem;color:var(--muted)}
 .bar{height:10px;width:200px;border-radius:5px;background:linear-gradient(90deg,#fcfbfd,#dadaeb,#9e9ac8,#6a51a3,#3f007d);border:1px solid var(--line)}
 </style>
@@ -92,7 +95,9 @@ function build(text){
   const msgEl=document.getElementById("msg"); if(msgEl) msgEl.remove();
 
   $("#t").DataTable({
-    data:rows, paging:false, searching:false, info:false, order:[],
+    data:rows, paging:false, info:false, dom:"t<'bottom'f>",
+    order:[[dates.length,"desc"]], // most recent column, highest first
+    language:{search:"Search:",searchPlaceholder:"Filter variants…"},
     columns:[{title:"Variant"},...dates.map(d=>({title:label(d),orderSequence:["desc","asc"],
       render:(v,type)=>type==="display"?(v===null?"–":v.toFixed(1)+"%"):(v===null?-1:v),
       createdCell:(td,v)=>{
