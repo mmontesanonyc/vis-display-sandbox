@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SARS-CoV-2 variants by week</title>
+<style>
+:root{--bg:#fff;--fg:#1f1b2e;--muted:#6b6780;--line:#e4e1ee;--blank:#f3f2f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15131d;--fg:#ece9f6;--muted:#9a95b0;--line:#2e2a3f;--blank:#221f30}}
+:root[data-theme="dark"]{--bg:#15131d;--fg:#ece9f6;--muted:#9a95b0;--line:#2e2a3f;--blank:#221f30}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px}
+h1{font-size:1.25rem;margin:0 0 4px}
+p.sub{color:var(--muted);margin:0 0 16px;font-size:.9rem}
+.wrap{overflow-x:auto}
+table.dataTable{border-collapse:collapse;width:100%;font-size:.85rem}
+table.dataTable th,table.dataTable td{border:2px solid var(--bg);padding:8px 10px;text-align:center;white-space:nowrap}
+table.dataTable thead th{cursor:pointer;color:var(--fg);font-weight:600;border-bottom:1px solid var(--line);position:relative;padding-right:18px}
+table.dataTable thead th:first-child,table.dataTable tbody td:first-child{text-align:left;font-weight:600;background:var(--bg);color:var(--fg)}
+table.dataTable thead th::after{content:"↕";position:absolute;right:5px;opacity:.3;font-size:.75rem}
+table.dataTable thead th.sorting_asc::after{content:"▲";opacity:.9}
+table.dataTable thead th.sorting_desc::after{content:"▼";opacity:.9}
+.legend{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:.8rem;color:var(--muted)}
+.bar{height:10px;width:200px;border-radius:5px;background:linear-gradient(90deg,#fcfbfd,#dadaeb,#9e9ac8,#6a51a3,#3f007d);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<main>
+  <h1>SARS-CoV-2 variants, weekly share of sequences (%)</h1>
+  <p class="sub">Weeks ending 2026, oldest → newest. Click a column header to sort. The week of 7/11 had no data and is omitted.</p>
+  <div class="wrap"><table id="t" class="display"></table></div>
+  <div class="legend"><span>0%</span><span class="bar"></span><span id="max"></span></div>
+</main>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js"></script>
+<script>
+const dates=["Jul 4","Jul 18","Jul 25","Aug 1","Aug 8","Aug 15","Aug 22","Aug 29","Sep 5","Sep 12","Sep 19"];
+const rows=[
+["Other",51.598093,44.848427,45.709431,49.922494,40.285693,49.762726,48.989961,52.999064,47.193204,46.215828,49.192653],
+["JN.1",14.45377,11.040447,5.612444,4.621072,7.999234,5.138668,3.10581,2.767262,2.746138,1.360387,2.777291],
+["RW.1",19.981207,25.572995,21.563027,20.967598,28.614428,21.268381,26.765113,17.156518,19.058225,29.456047,28.629381],
+["SW.2",1.498336,5.303839,6.158178,4.439882,3.854982,8.662093,6.745443,6.33926,10.16884,4.49925,4.863432],
+["TA.1",null,null,0.529586,0.27222,0.85527,1.924676,3.408523,10.558206,1.867424,7.646231,6.330917],
+["XFG.6",4.9233,3.57092,8.75483,6.038236,10.764028,5.817053,3.997679,3.827118,6.607043,5.396431,6.233276],
+["XFJ.3",7.545296,9.663373,11.672506,13.738496,7.626365,7.426407,6.987471,6.352576,12.359129,5.425826,1.973051]
+];
+const ramp=["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"].map(h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)));
+const MAX=Math.max(...rows.flatMap(r=>r.slice(1).filter(v=>v!==null)));
+document.getElementById("max").textContent=MAX.toFixed(0)+"%";
+function color(v){
+  const t=Math.sqrt(v/MAX)*(ramp.length-1), i=Math.min(Math.floor(t),ramp.length-2), f=t-i;
+  const c=ramp[i].map((a,k)=>Math.round(a+(ramp[i+1][k]-a)*f));
+  const lum=(0.299*c[0]+0.587*c[1]+0.114*c[2]);
+  return {bg:`rgb(${c})`,fg:lum<140?"#fff":"#1f1b2e"};
+}
+$("#t").DataTable({
+  data:rows, paging:false, searching:false, info:false, order:[],
+  columns:[{title:"Variant"},...dates.map(d=>({title:d,orderSequence:["desc","asc"],
+    render:(v,type)=>type==="display"?(v===null?"–":v.toFixed(1)+"%"):(v===null?-1:v),
+    createdCell:(td,v)=>{ if(v===null){td.style.background="var(--blank)";td.style.color="var(--muted)";} else {const c=color(v);td.style.background=c.bg;td.style.color=c.fg;} }
+  }))]
+});
+</script>
+</body>
+</html>
