@@ -16,6 +16,8 @@ p.sub{color:var(--muted);margin:0 0 16px;font-size:.9rem}
 table.dataTable{border-collapse:collapse;width:100%;font-size:.85rem}
 table.dataTable th,table.dataTable td{border:2px solid var(--bg);padding:8px 10px;text-align:center;white-space:nowrap}
 table.dataTable thead th{cursor:pointer;color:var(--fg);font-weight:600;border-bottom:1px solid var(--line);position:relative;padding-right:18px}
+table.dataTable thead th:first-child{cursor:default}
+table.dataTable thead th:first-child::after{content:none}
 table.dataTable thead th:first-child,table.dataTable tbody td:first-child{text-align:left;font-weight:600;background:var(--bg);color:var(--fg)}
 table.dataTable thead th::after{content:"↕";position:absolute;right:5px;opacity:.3;font-size:.75rem}
 table.dataTable thead th.sorting_asc::after{content:"▲";opacity:.9}
@@ -29,19 +31,18 @@ table.dataTable thead th.sorting_desc::after{content:"▼";opacity:.9}
 </head>
 <body>
 <main>
-  <h1>SARS-CoV-2 variants, weekly share of sequences (%)</h1>
-  <p class="sub">Oldest → newest, left to right. Click a column header to sort.</p>
+  <h1>SARS-CoV-2 variants</h1>
+  <p class="sub">Weekly share of sequences</p>
   <div id="msg">Loading data…</div>
   <div class="wrap"><table id="t" class="display"></table></div>
-  <div class="legend"><span>0%</span><span class="bar"></span><span id="max"></span></div>
 </main>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-const CSV_URL="https://gist.githubusercontent.com/mmontesanonyc/c1de0ceba956c98e6f5ccdd4fd6a6405/raw/3cb8f4bb7e1708142d1b122fab740890340d1a97/wastewaterData.csv";
+const CSV_URL="https://gist.githubusercontent.com/mmontesanonyc/0d3d9997a2f0d67243ed24c02103153b/raw/200bcf50961599ba7d93c315150373d2b2637a93/wastewaterData.csv";
 
-const ramp=["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"].map(h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)));
+const ramp=["#ffffff","#F8F1FC","#EDE0F5","#DEC4EF","#BC6AE8","#A020C8","#8739B7","#520583","#1F003D"].map(h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)));
 let MAX=1;
 function color(v){
   const t=Math.sqrt(v/MAX)*(ramp.length-1), i=Math.min(Math.floor(t),ramp.length-2), f=t-i;
@@ -96,9 +97,10 @@ function build(text){
 
   $("#t").DataTable({
     data:rows, paging:false, info:false, dom:"t<'bottom'f>",
+    orderFixed:{pre:[[0,"asc"]]},
     order:[[dates.length,"desc"]], // most recent column, highest first
     language:{search:"Search:",searchPlaceholder:"Filter variants…"},
-    columns:[{title:"Variant"},...dates.map(d=>({title:label(d),orderSequence:["desc","asc"],
+    columns:[{title:"Variant",orderable:false,render:(v,type)=>type==="sort"?(v==="Other"?1:0):v},...dates.map(d=>({title:label(d),orderSequence:["desc","asc"],
       render:(v,type)=>type==="display"?(v===null?"–":v.toFixed(1)+"%"):(v===null?-1:v),
       createdCell:(td,v)=>{
         if(v===null){td.style.background="var(--blank)";td.style.color="var(--muted)";}
