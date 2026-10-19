@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topics &amp; Indicators</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#6b7385; --border:#e1e4ea; --accent:#2457d6; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; font-size:.9rem; }
+  a.back { display:inline-block; margin-bottom:16px; color:var(--accent); text-decoration:none; font-weight:600; }
+  a.back:hover { text-decoration:underline; }
+  .parent { background:var(--card); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
+  .parent-head { display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; background:none; border:0; font:inherit; color:inherit; text-align:left; cursor:pointer; border-radius:10px; }
+  .parent-head:hover { background:#fafbfc; }
+  .parent-head:focus-visible { outline:2px solid var(--accent); }
+  .parent-text { flex:1; min-width:0; }
+  .parent-name { font-weight:600; }
+  .parent-desc { color:var(--muted); font-size:.85rem; margin-top:2px; }
+  .badge { flex-shrink:0; background:#eef0f4; color:var(--muted); font-size:.75rem; font-weight:600; line-height:1; padding:4px 8px; border-radius:999px; }
+  .chev { color:var(--muted); font-size:1.3rem; line-height:1; transition:transform .15s; }
+  .parent.open .chev { transform:rotate(90deg); }
+  .parent-body { display:none; flex-wrap:wrap; gap:8px; padding:2px 16px 16px; }
+  .parent.open .parent-body { display:flex; }
+  .tbadge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border:1px solid var(--border); border-radius:999px; background:#f3f6fd; color:var(--accent); text-decoration:none; font-size:.9rem; font-weight:500; }
+  .tbadge:hover, .tbadge:focus-visible { border-color:var(--accent); background:#e6efff; outline:none; }
+  .tbadge .n { background:#fff; color:var(--muted); font-size:.72rem; font-weight:600; padding:2px 7px; border-radius:999px; }
+  button.more { margin:18px auto 0; display:block; padding:9px 18px; border:1px solid var(--border); background:var(--card); border-radius:8px; cursor:pointer; font:inherit; }
+  button.more:hover { border-color:var(--accent); color:var(--accent); }
+  .row { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .row .name { margin-bottom:8px; }
+  .pill { display:inline-block; font-size:.75rem; padding:2px 10px; border-radius:999px; margin:0 6px 4px 0; }
+  .pill.area { background:#e6efff; color:#1b449c; }
+  .pill.product { background:#e8f6ec; color:#1f6b36; }
+  .sec { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:24px 0 10px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+  .tcard { background:var(--card); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius: 0 10px 10px 0; padding:14px; }
+  .tcard .name { font-weight:600; margin-bottom:8px; }
+  .cards.minor { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
+  .pcard { background:#fafbfc; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:.85rem; }
+  .pcard .name { margin-bottom:6px; }
+  .msg { padding:16px; background:#fff3f0; border:1px solid #f1c2b8; border-radius:8px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <div id="app"></div>
+</main>
+
+<script>
+const CSV_URL = "https://gist.githubusercontent.com/mmontesanonyc/349c03488cc523668c7f36e3757dfd1c/raw/e161273d49ae1d25bcc07188efc9839ea24d018c/data-list.csv";
+// Column header names (case-insensitive) — change here if your CSV differs
+const COLS = { topic: "Topics", indicator: "Title", area: "Area", product: "Product", type: "Type" };
+
+const app = document.getElementById("app");
+let rows = [];          // {topic, indicator, area, product}
+let topics = [];        // [{name, items}]
+const openParents = new Set();   // ids of expanded parent categories (kept when you come back)
+let savedScroll = 0;
+
+// Parent categories and the topics that belong to each.
+// Topic names are the individual comma-separated topics as they appear in the CSV
+// (e.g. "Child health & development, maternal/infant health, birth & fertility"
+// is three separate topics).
+const PARENTS = [
+  {
+    id: "health-wellbeing",
+    name: "Health & well-being",
+    description: "Overall health status, functioning, and well-being",
+    topics: [
+      "General health",
+      "Mental and cognitive health",
+      "Disability & functioning",
+      "Sleep",
+      "Oral health",
+    ],
+  },
+  {
+    id: "chronic-diseases",
+    name: "Chronic diseases & conditions",
+    description: "Long-term diseases and major clinical conditions",
+    topics: [
+      "Chronic diseases",
+      "Cancer",
+      "Cardiovascular health",
+      "Diabetes",
+      "Kidney health",
+      "Respiratory health",
+    ],
+  },
+  {
+    id: "infectious-immunization",
+    name: "Infectious diseases & immunization",
+    description: "Infections, transmission, and disease prevention",
+    topics: [
+      "Infectious diseases",
+      "Infectious disease prevention",
+      "Foodborne & gastrointestinal infections",
+      "Viral hepatitis",
+      "Vector-borne diseases",
+      "Zoonotic diseases",
+      "Vaccines & immunization",
+    ],
+  },
+  {
+    id: "sexual-reproductive-child",
+    name: "Sexual, reproductive & child health",
+    description: "Reproductive health and health across early life",
+    topics: [
+      "Child health & development",
+      "Maternal/infant health",
+      "Birth & fertility",
+      "Sexual & reproductive health",
+      "STIs & HIV",
+      "Sexual & gender identity",
+    ],
+  },
+  {
+    id: "behaviors-lifestyle",
+    name: "Health behaviors & lifestyle",
+    description: "Behaviors and everyday practices associated with health",
+    topics: [
+      "Nutrition & food",
+      "Physical activity & fitness",
+      "Substance use",
+      "Tobacco/nicotine",
+      "Alcohol",
+      "Screen time & digital media",
+    ],
+  },
+  {
+    id: "healthcare-prevention",
+    name: "Healthcare & prevention",
+    description: "Access to services and preventive interventions",
+    topics: [
+      "Healthcare access & use",
+      "Preventive care & screening",
+    ],
+  },
+  {
+    id: "social-community",
+    name: "Social & community conditions",
+    description: "Social circumstances and the places and institutions that shape health",
+    topics: [
+      "Discrimination & equity",
+      "Social & economic conditions",
+      "Housing",
+      "Neighborhood & community",
+      "Caregiving & support",
+      "School & education",
+      "Occupational health",
+    ],
+  },
+  {
+    id: "environment-climate",
+    name: "Environment & climate",
+    description: "Environmental exposures, hazards, and climate-related conditions",
+    topics: [
+      "Environmental health",
+      "Air quality",
+      "Climate & heat",
+      "Water quality",
+    ],
+  },
+  {
+    id: "safety-injury-mortality",
+    name: "Safety, injury & mortality",
+    description: "Injury risks, violence, transportation safety, and deaths",
+    topics: [
+      "Violence & victimization",
+      "Safety & injury",
+      "Transportation & driving",
+      "Mortality & causes of death",
+    ],
+  },
+];
+
+// Normalise names so "&" vs "and", capitalisation and extra spaces don't break matching.
+const normTopic = s =>
+  (s || "").toLowerCase().replace(/&/g, "and").replace(/\s+/g, " ").trim();
+
+// topic (normalised) -> parent
+const PARENT_BY_TOPIC = new Map();
+PARENTS.forEach(p => p.topics.forEach(t => PARENT_BY_TOPIC.set(normTopic(t), p)));
+
+// Parent for a single topic name, or undefined if it isn't mapped.
+function parentOf(topicName) {
+  return PARENT_BY_TOPIC.get(normTopic(topicName));
+}
+
+// Group an array of topic objects ({ name, ... }) under their parents.
+// Parents keep the order above; any unmapped topics go in a trailing "Other" group.
+function groupByParent(topics) {
+  const groups = PARENTS.map(p => ({ ...p, topics: [] }));
+  const byId = new Map(groups.map(g => [g.id, g]));
+  const other = { id: "other", name: "Other", description: "", topics: [] };
+  topics.forEach(t => {
+    const p = parentOf(t.name);
+    (p ? byId.get(p.id) : other).topics.push(t);
+  });
+  if (other.topics.length) groups.push(other);
+  return groups.filter(g => g.topics.length);
+}
+
+// Handy while wiring up: lists CSV topics that have no parent yet.
+function unmappedTopics(topics) {
+  return topics.filter(t => !parentOf(t.name)).map(t => t.name);
+}
+
+function parseCSV(text) {
+  const out = []; let row = [], cur = "", q = false;
+  text = text.replace(/^\uFEFF/, "");
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i+1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i+1] === "\n") i++;
+      row.push(cur); cur = "";
+      if (row.some(v => v.trim() !== "")) out.push(row);
+      row = [];
+    } else cur += c;
+  }
+  row.push(cur);
+  if (row.some(v => v.trim() !== "")) out.push(row);
+  return out;
+}
+
+// Sentence case: first letter capitalised, the rest lowercased,
+// but all-caps words (COVID-19, HIV, NYC) are left alone.
+function sentenceCase(str) {
+  const out = str.split(/(\s+)/).map(w =>
+    (w.length > 1 && /[A-Z]/.test(w) && w === w.toUpperCase() && /[A-Z]{2}/.test(w)) ? w : w.toLowerCase()
+  ).join("");
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
+const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+function detectColumns(headers) {
+  const h = headers.map(norm);
+  const idx = {};
+  for (const k in COLS) {
+    const key = norm(COLS[k]);
+    let i = h.indexOf(key);                          // exact match
+    if (i < 0) i = h.findIndex(x => x.includes(key)); // header contains the word
+    if (i < 0) i = h.findIndex(x => x && key.includes(x)); // word contains header
+    idx[k] = i;
+  }
+  return idx;
+}
+
+function load(text, forcedIdx) {
+  const table = parseCSV(text);
+  // Use the first row that looks like a header (in case of title rows above it)
+  let hr = table.findIndex((r, n) => n < 10 && detectColumns(r).topic >= 0 && detectColumns(r).indicator >= 0);
+  if (hr < 0) hr = 0;
+  const headers = table[hr].map(h => h.trim());
+  const idx = forcedIdx || detectColumns(headers);
+  if (idx.topic < 0 || idx.indicator < 0) {
+    return showMapper(text, headers);
+  }
+  table.splice(0, hr);
+  const get = (r, i) => i >= 0 ? (r[i] || "").trim() : "";
+  // If Topics is the last column and its list isn't quoted in the CSV, the extra
+  // comma-separated topics spill into additional cells — join them back together.
+  let lastCol = headers.length - 1;
+  while (lastCol > 0 && !headers[lastCol]) lastCol--;
+  const topicCell = r => idx.topic === lastCol ? r.slice(idx.topic).join(",") : get(r, idx.topic);
+  rows = table.slice(1).map(r => ({
+    topic: topicCell(r), indicator: get(r, idx.indicator),
+    area: get(r, idx.area), product: get(r, idx.product), type: get(r, idx.type)
+  })).filter(r => r.topic);
+
+  // A cell can hold several comma-separated topics; list the row under each one.
+  // Topics are grouped case-insensitively, keeping the first spelling seen.
+  const map = new Map();   // lowercase key -> {name, items}
+  rows.forEach(r => {
+    const seen = new Set();
+    r.topic.split(/[,;|\n]+/).map(s => s.trim()).filter(Boolean).forEach(name => {
+      const key = name.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (!map.has(key)) map.set(key, { key, name: sentenceCase(name), items: [] });
+      map.get(key).items.push(r);
+    });
+  });
+  topics = [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  render();
+}
+
+function showMapper(text, headers) {
+  app.innerHTML = "";
+  const d = el("div", "msg");
+  d.appendChild(el("p", null, "Couldn't auto-match the columns. Pick which column from your file is which:"));
+  const sels = {};
+  const labels = { topic: "Topic", indicator: "Indicator", area: "Area", product: "Product", type: "Type" };
+  const guess = detectColumns(headers);
+  for (const k in labels) {
+    const wrap = el("p");
+    wrap.appendChild(el("label", null, labels[k] + ": "));
+    const s = document.createElement("select");
+    const none = new Option("— none —", -1); s.appendChild(none);
+    headers.forEach((h, i) => s.appendChild(new Option(h || `(column ${i + 1})`, i)));
+    s.value = guess[k];
+    sels[k] = s; wrap.appendChild(s); d.appendChild(wrap);
+  }
+  const go = el("button", "more", "Load");
+  go.onclick = () => {
+    const idx = {};
+    for (const k in sels) idx[k] = parseInt(sels[k].value, 10);
+    if (idx.topic < 0 || idx.indicator < 0) return alert("Topic and Indicator are required.");
+    load(text, idx);
+  };
+  d.appendChild(go);
+  app.appendChild(d);
+}
+
+function showError(msg) {
+  app.innerHTML = "";
+  const d = document.createElement("div");
+  d.className = "msg";
+  d.innerHTML = `<p></p><p>You can load the file manually instead:</p><input type="file" accept=".csv">`;
+  d.querySelector("p").textContent = msg;
+  d.querySelector("input").addEventListener("change", e => {
+    const f = e.target.files[0]; if (f) f.text().then(load);
+  });
+  app.appendChild(d);
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function render() {
+  const sel = decodeURIComponent(location.hash.slice(1));
+  const topic = topics.find(t => t.name === sel);
+  topic ? renderTopic(topic) : renderTopics();
+}
+
+function renderTopics() {
+  app.innerHTML = "";
+  app.appendChild(el("h1", null, "Topics"));
+  const groups = groupByParent(topics);
+  app.appendChild(el("p", "sub", `${groups.length} categories · ${topics.length} topics · ${rows.length} indicators and datasets`));
+
+  groups.forEach(g => {
+    const sec = el("section", "parent" + (openParents.has(g.id) ? " open" : ""));
+    const head = el("button", "parent-head");
+    head.type = "button";
+    head.setAttribute("aria-expanded", String(openParents.has(g.id)));
+    const text = el("div", "parent-text");
+    text.appendChild(el("div", "parent-name", g.name));
+    if (g.description) text.appendChild(el("div", "parent-desc", g.description));
+    head.append(text, el("span", "badge", `${g.topics.length} topic${g.topics.length === 1 ? "" : "s"}`), el("span", "chev", "›"));
+
+    const body = el("div", "parent-body");
+    g.topics.forEach(t => {
+      const a = el("a", "tbadge");
+      a.href = "#" + encodeURIComponent(t.name);
+      a.title = `${t.items.length} item${t.items.length === 1 ? "" : "s"}`;
+      a.append(document.createTextNode(t.name), el("span", "n", String(t.items.length)));
+      a.onclick = () => { savedScroll = window.scrollY; };
+      body.appendChild(a);
+    });
+
+    head.onclick = () => {
+      const isOpen = sec.classList.toggle("open");
+      head.setAttribute("aria-expanded", String(isOpen));
+      isOpen ? openParents.add(g.id) : openParents.delete(g.id);
+    };
+    sec.append(head, body);
+    app.appendChild(sec);
+  });
+  requestAnimationFrame(() => window.scrollTo(0, savedScroll));
+}
+
+// Which section a row belongs in, based on its Type value
+function kindOf(type) {
+  const p = (type || "").trim().toLowerCase();
+  if (/^tool/.test(p)) return "tool";
+  if (/^publication/.test(p)) return "publication";
+  return "indicator";   // "Indicator" and anything blank/unrecognised go in the main list
+}
+
+function renderTopic(t) {
+  app.innerHTML = "";
+  const back = el("a", "back", "← Back to Topics");
+  back.href = "#";
+  app.appendChild(back);
+  app.appendChild(el("h1", null, t.name));
+
+  const tools = t.items.filter(r => kindOf(r.type) === "tool");
+  const inds  = t.items.filter(r => kindOf(r.type) === "indicator");
+  const pubs  = t.items.filter(r => kindOf(r.type) === "publication");
+  const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const counts = [];
+  if (tools.length) counts.push(plural(tools.length, "tool"));
+  if (inds.length) counts.push(plural(inds.length, "indicator"));
+  if (pubs.length) counts.push(plural(pubs.length, "publication"));
+  app.appendChild(el("p", "sub", counts.join(" · ")));
+
+  const multi = [tools, inds, pubs].filter(a => a.length).length > 1;
+
+  // Tools: prominent cards above the list
+  if (tools.length) {
+    app.appendChild(el("h2", "sec", "Tools"));
+    const g = el("div", "cards");
+    tools.forEach(r => {
+      const c = el("div", "tcard");
+      c.appendChild(el("div", "name", r.indicator || "(untitled)"));
+      if (r.area) c.appendChild(el("span", "pill area", r.area));
+      g.appendChild(c);
+    });
+    app.appendChild(g);
+  }
+
+  // Indicators: the row list
+  if (inds.length) {
+    if (multi) app.appendChild(el("h2", "sec", "Indicators"));
+    inds.forEach(r => {
+      const row = el("div", "row");
+      row.appendChild(el("div", "name", r.indicator || "(no indicator)"));
+      if (r.area) row.appendChild(el("span", "pill area", r.area));
+      if (r.product) row.appendChild(el("span", "pill product", r.product));
+      app.appendChild(row);
+    });
+  }
+
+  // Publications: minor cards below the list
+  if (pubs.length) {
+    app.appendChild(el("h2", "sec", "Publications"));
+    const g = el("div", "cards minor");
+    pubs.forEach(r => {
+      const c = el("div", "pcard");
+      c.appendChild(el("div", "name", r.indicator || "(untitled)"));
+      if (r.area) c.appendChild(el("span", "pill area", r.area));
+      g.appendChild(c);
+    });
+    app.appendChild(g);
+  }
+  window.scrollTo(0, 0);
+}
+
+window.addEventListener("hashchange", () => { if (rows.length) render(); });
+
+app.textContent = "Loading…";
+fetch(CSV_URL)
+  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+  .then(load)
+  .catch(err => showError("Couldn't load the CSV (" + err.message + ")."));
+</script>
+</body>
+</html>

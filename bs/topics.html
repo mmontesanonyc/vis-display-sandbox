@@ -41,7 +41,7 @@
   .pill.product { background:#e8f6ec; color:#1f6b36; }
   .sec { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:24px 0 10px; }
   .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-  .tcard { background:var(--card); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:10px; padding:14px; }
+  .tcard { background:var(--card); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius: 0 10px 10px 0; padding:14px; }
   .tcard .name { font-weight:600; margin-bottom:8px; }
   .cards.minor { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
   .pcard { background:#fafbfc; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:.85rem; }
@@ -56,7 +56,7 @@
 </main>
 
 <script>
-const CSV_URL = "https://gist.githubusercontent.com/mmontesanonyc/80d84dd27324dfb60f1b5f826302a1c0/raw/b2f4062ccd6ff8756f99310e8f2b53caaa666d0d/data-list.csv";
+const CSV_URL = "https://gist.githubusercontent.com/mmontesanonyc/349c03488cc523668c7f36e3757dfd1c/raw/e161273d49ae1d25bcc07188efc9839ea24d018c/data-list.csv";
 // Column header names (case-insensitive) — change here if your CSV differs
 const COLS = { topic: "Topics", indicator: "Title", area: "Area", product: "Product", type: "Type" };
 const INITIAL_VISIBLE = 12;
