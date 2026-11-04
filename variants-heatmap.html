@@ -36,9 +36,18 @@ table.dataTable thead th.sorting_desc::after{content:"▼";opacity:.9}
 <body>
 <main>
   <h1>SARS-CoV-2 variants</h1>
-  <p class="sub">Weekly share of sequences</p>
+  <p>SARS-CoV-2 variants are identified in wastewater through whole genome sequencing. Weekly proportions show the contributions of all variants identified each week.</p>
+
+  <p class="sub">Proportion of SARS-CoV-2 variants</p>
   <div id="msg">Loading data…</div>
   <div class="wrap"><table id="t" class="display"></table></div>
+  <div>OTHER COPY:
+
+    <p><strong>Info box:</strong> Variant lineage proportions are calculated as the total number of sequences identified per lineage for each sample divided by the total number of sequences identified in the sample. Variant lineages with a proportion < 10% for each week in the time period presented are categorized as ‘Other’.</p>
+
+    <p><strong>About page:</strong> There are 14 wastewater drainage areas in NYC, known as sewersheds. Wastewater from these areas is treated at 14 wastewater resource recovery facilities (WRRFs) located throughout the city. Twice a week, the Department of Environmental Protection collects wastewater from these WRRFs prior to treatment and shares the samples with the NYC Health Department to analyze and quantify biological markers of specific pathogens. Wastewater viral load data are normalized to account for the average daily flow into each sewershed and the approximate population served. SARS-CoV-2 variants are identified in wastewater through whole genome sequencing. Wastewater can provide some information on how much a virus is circulating in our community but may not include or represent all NYC residents infected or those who feel sick or seek medical care. </p>
+
+  </div>
 </main>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.11/js/jquery.dataTables.min.js"></script>
