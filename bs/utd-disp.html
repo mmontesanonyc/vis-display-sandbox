@@ -92,9 +92,15 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 .axis div{position:relative;height:16px;grid-column:3}
 .axis span{position:absolute;transform:translateX(-50%)}
 
-.card-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.card-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;border-bottom:1px solid var(--line)}
 .card-bar label{display:inline;margin:0}
 .card-bar select{width:auto}
+.card-bar .hl-label{margin-left:14px}
+.group-pick{flex-wrap:wrap}
+.group-pick .hl-label{margin-left:14px}
+.ph-note{margin-left:6px;font-size:12px;color:var(--muted)}
+.dot.dim{opacity:.3}
+.dot.hl{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;opacity:1;border:2px solid var(--ink);z-index:2}
 
 /* Map */
 .map-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin:24px 0 8px}
@@ -216,7 +222,9 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 
     <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
     <div class="table">
-      <div class="card-bar"><label for="dimSel">Show by</label><select id="dimSel"></select></div>
+      <div class="card-bar"><label for="dimSel">Show by</label><select id="dimSel"></select>
+        <label class="hl-label" for="hlSel">Highlight*</label><select id="hlSel"><option value="off">Off</option><option value="on">On*</option></select>
+        <span class="ph-note">*Placeholder: will let you pick a specific neighborhood, borough, age group, etc.</span></div>
       <div class="head" aria-hidden="true">
           <span></span><span>Response</span><span id="distHead">Distribution (42 dots)</span><span class="nyc">NYC</span>
         </div>
@@ -241,7 +249,9 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
           <button type="button" class="seg-btn" data-mode="answer" aria-pressed="true">By answer</button>
           <button type="button" class="seg-btn" data-mode="group" aria-pressed="false">By group</button>
         </div>
-        <div class="group-pick" id="dimPick"><label for="dimSel2">Show by</label><select id="dimSel2"></select></div>
+        <div class="group-pick" id="dimPick"><label for="dimSel2">Show by</label><select id="dimSel2"></select>
+          <label class="hl-label" for="hlSel2">Highlight*</label><select id="hlSel2"><option value="off">Off</option><option value="on">On*</option></select>
+          <span class="ph-note">*Placeholder: adds a trendline for one subgroup.</span></div>
         <div class="group-pick" id="groupPick" hidden>
           <label for="groupSel">Group</label>
           <select id="groupSel"></select>
@@ -334,6 +344,7 @@ const MAP_SVG = '<svg class="mapped" viewBox="0 0 24 24" fill="none" stroke="cur
 
 const DIMS = [['uhf','Neighborhood'],['age','Age'],['race','Race/ethnicity'],['edu','Education level'],['boro','Borough']];
 let dim = 'uhf';
+let hlOn = false; // placeholder highlight: one fixed dot per row when On
 function dist(row,p){ // values behind the dots for one row in survey year index p
   if(dim==='uhf') return {vals:row.series[p].vals, labels:null};
   const ri = ROWS.indexOf(row), cats = GROUPS[dim].cats;
@@ -375,6 +386,7 @@ function draw(){
     if(!w) return; // hidden tab: skip until visible
     s.innerHTML = '';
     const dd = dist(r, YEARS.length-1);
+    const hlIdx = dim==='uhf' ? 5 : Math.min(1, dd.vals.length-1);
     dd.vals.map((v,k)=>({v,k})).sort((a,c)=>a.v-c.v).forEach(o=>{
       const v = o.v, x = v/MAX*w;
       for(let k=0;k<20;k++){
@@ -382,7 +394,7 @@ function draw(){
         if(!placed.some(p=>Math.hypot(p.x-x,p.y-y)<D*1.05)){
           placed.push({x,y});
           const d = document.createElement('span');
-          d.className = 'dot';
+          d.className = 'dot' + (hlOn ? (o.k===hlIdx ? ' hl' : ' dim') : '');
           d.title = (dd.labels?dd.labels[o.k]+': ':'')+v.toFixed(1)+'%';
           d.style.cssText = 'left:'+x+'px;top:calc(50% + '+y+'px);background:var(--'+r.key+'-dot)';
           s.appendChild(d);
@@ -529,7 +541,7 @@ function drawTime(){
     : '<b>'+current.name+'</b>: NYC mean over time';
   document.getElementById('chartKey').innerHTML = grp
     ? ROWS.map(r=>'<span><i class="sw-line" style="--c:var(--'+r.key+'-dot)"></i> '+r.name+'</span>').join('')
-    : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> '+(dim==='uhf' ? 'Distribution across the 42 neighborhoods' : 'Each dot is one '+GROUPS[dim].label.toLowerCase()+' category')+'</span>';
+    : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> '+(dim==='uhf' ? 'Distribution across the 42 neighborhoods' : 'Each dot is one '+GROUPS[dim].label.toLowerCase()+' category')+'</span>'+(hlOn ? '<span><i class="sw-line" style="--c:var(--ink)"></i> Highlighted: '+(dim==='uhf' ? 'one neighborhood' : GROUPS[dim].cats[Math.min(1,GROUPS[dim].cats.length-1)])+'*</span>' : '');
 
   const box = document.getElementById('timeChart'), W = box.clientWidth;
   if(!W) return; // hidden tab: skip until visible
@@ -584,6 +596,14 @@ function drawTime(){
         g += '<circle cx="'+(x(i)+jx)+'" cy="'+y(v)+'" r="2" style="fill:var(--'+key+'-dot);fill-opacity:.4"/>';
       });
     });
+    if(hlOn){ // placeholder: trendline for one fixed subgroup
+      const hk = dim==='uhf' ? 5 : Math.min(1, sv[0].vals.length-1);
+      g += '<polyline fill="none" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round" style="stroke:var(--ink)" points="'+
+           sv.map((o,i)=>x(i)+','+y(o.vals[hk])).join(' ')+'"/>';
+      sv.forEach((o,i)=>{
+        g += '<circle cx="'+x(i)+'" cy="'+y(o.vals[hk])+'" r="4" stroke-width="1.5" style="fill:var(--ink);stroke:var(--panel)"><title>'+(o.labels?o.labels[hk]:'Highlighted neighborhood*')+', '+ser[i].year+': '+o.vals[hk].toFixed(1)+'%</title></circle>';
+      });
+    }
     g += '<polyline fill="none" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" style="stroke:var(--'+key+'-dot)" points="'+
          ser.map((s,i)=>x(i)+','+y(s.mean)).join(' ')+'"/>';
     ser.forEach((s,i)=>{
@@ -672,6 +692,12 @@ function drawGroup(){
   box.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+current.name+' by borough and age group, with 95% confidence intervals">'+g+'</svg>';
 }
 new ResizeObserver(drawGroup).observe(document.getElementById('grpChart'));
+
+['hlSel','hlSel2'].forEach(id=>document.getElementById(id).addEventListener('change',e=>{
+  hlOn = e.target.value==='on';
+  ['hlSel','hlSel2'].forEach(i=>document.getElementById(i).value = e.target.value);
+  draw(); drawTime();
+}));
 
 /* ---------- Map ---------- */
 const GEO_URL = 'https://raw.githubusercontent.com/nycehs/NYC_geography/master/UHF42.geo.json';
