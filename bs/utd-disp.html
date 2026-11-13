@@ -92,6 +92,10 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 .axis div{position:relative;height:16px;grid-column:3}
 .axis span{position:absolute;transform:translateX(-50%)}
 
+.card-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.card-bar label{display:inline;margin:0}
+.card-bar select{width:auto}
+
 /* Map */
 .map-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin:24px 0 8px}
 .map-head .label{color:var(--muted)}
@@ -211,9 +215,10 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
     </div>
 
     <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
-      <div class="table">
-        <div class="head" aria-hidden="true">
-          <span></span><span>Response</span><span>Distribution (42 dots)</span><span class="nyc">NYC</span>
+    <div class="table">
+      <div class="card-bar"><label for="dimSel">Show by</label><select id="dimSel"></select></div>
+      <div class="head" aria-hidden="true">
+          <span></span><span>Response</span><span id="distHead">Distribution (42 dots)</span><span class="nyc">NYC</span>
         </div>
         <div id="rows" role="group" aria-label="Responses. Select one to map it."></div>
         <div class="axis" aria-hidden="true"><div id="ticks"></div></div>
@@ -236,6 +241,7 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
           <button type="button" class="seg-btn" data-mode="answer" aria-pressed="true">By answer</button>
           <button type="button" class="seg-btn" data-mode="group" aria-pressed="false">By group</button>
         </div>
+        <div class="group-pick" id="dimPick"><label for="dimSel2">Show by</label><select id="dimSel2"></select></div>
         <div class="group-pick" id="groupPick" hidden>
           <label for="groupSel">Group</label>
           <select id="groupSel"></select>
@@ -254,7 +260,21 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
     </section>
 
     <section class="panel" id="panel-group" role="tabpanel" aria-labelledby="tab-group" hidden>
-      <div class="placeholder">By group view goes here</div>
+      <div class="controls">
+        <div class="group-pick"><label for="g1Sel">Show</label><select id="g1Sel"></select></div>
+        <div class="group-pick"><label for="g2Sel">by</label><select id="g2Sel"></select></div>
+        <div class="group-pick"><label for="gResp">Response</label><select id="gResp"></select></div>
+      </div>
+      <div class="chart-card" id="grpCard">
+        <p class="chart-head" id="gHead"></p>
+        <div class="chart-key" aria-hidden="true">
+          <span><b style="color:var(--c)">&#9679;</b> Estimate</span>
+          <span><i class="sw-line"></i> 95% confidence interval</span>
+          <span>&#9482; NYC overall</span>
+        </div>
+        <div id="grpChart"></div>
+      </div>
+      <p class="map-note">All columns share one scale so they can be compared. Only Borough by Age group is available for now; estimates and confidence intervals are placeholders.</p>
     </section>
 
     <footer class="site-footer">
@@ -311,6 +331,15 @@ ROWS.forEach((row,i)=>{
 });
 
 const MAP_SVG = '<svg class="mapped" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
+
+const DIMS = [['uhf','Neighborhood'],['age','Age'],['race','Race/ethnicity'],['edu','Education level'],['boro','Borough']];
+let dim = 'uhf';
+function dist(row,p){ // values behind the dots for one row in survey year index p
+  if(dim==='uhf') return {vals:row.series[p].vals, labels:null};
+  const ri = ROWS.indexOf(row), cats = GROUPS[dim].cats;
+  return {vals:cats.map((_,c)=>catLines(dim,c)[ri].vals[p]), labels:cats};
+}
+
 const host = document.getElementById('rows');
 let current = ROWS[0];
 
@@ -333,23 +362,28 @@ function select(key){
   document.getElementById('timeCard').style.setProperty('--c','var(--'+key+'-dot)');
   recolor();
   drawTime();
+  document.getElementById('gResp').value = key;
+  drawGroup();
 }
 
 // Simple beeswarm: dots sit at their value on x and stack vertically to avoid overlap.
 function draw(){
   const D = 9;
+  document.getElementById('distHead').textContent = 'Distribution ('+(dim==='uhf'?N:GROUPS[dim].cats.length)+' dots)';
   host.querySelectorAll('.row').forEach((b,i)=>{
     const r = ROWS[i], s = b.querySelector('.strip'), w = s.clientWidth, placed = [];
     if(!w) return; // hidden tab: skip until visible
     s.innerHTML = '';
-    [...r.vals].sort((a,c)=>a-c).forEach(v=>{
-      const x = v/MAX*w;
+    const dd = dist(r, YEARS.length-1);
+    dd.vals.map((v,k)=>({v,k})).sort((a,c)=>a.v-c.v).forEach(o=>{
+      const v = o.v, x = v/MAX*w;
       for(let k=0;k<20;k++){
         const y = (k%2?1:-1)*Math.ceil(k/2)*D*0.95;
         if(!placed.some(p=>Math.hypot(p.x-x,p.y-y)<D*1.05)){
           placed.push({x,y});
           const d = document.createElement('span');
           d.className = 'dot';
+          d.title = (dd.labels?dd.labels[o.k]+': ':'')+v.toFixed(1)+'%';
           d.style.cssText = 'left:'+x+'px;top:calc(50% + '+y+'px);background:var(--'+r.key+'-dot)';
           s.appendChild(d);
           break;
@@ -427,6 +461,7 @@ document.querySelectorAll('.seg-btn').forEach(b=>b.addEventListener('click',()=>
   mode = b.dataset.mode; gcat = 0;
   document.querySelectorAll('.seg-btn').forEach(x=>x.setAttribute('aria-pressed', x===b));
   document.getElementById('groupPick').hidden = mode!=='group';
+  document.getElementById('dimPick').hidden = mode!=='answer';
   buildMultiples(); drawTime();
 }));
 
@@ -494,7 +529,7 @@ function drawTime(){
     : '<b>'+current.name+'</b>: NYC mean over time';
   document.getElementById('chartKey').innerHTML = grp
     ? ROWS.map(r=>'<span><i class="sw-line" style="--c:var(--'+r.key+'-dot)"></i> '+r.name+'</span>').join('')
-    : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> Distribution across the 42 neighborhoods</span>';
+    : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> '+(dim==='uhf' ? 'Distribution across the 42 neighborhoods' : 'Each dot is one '+GROUPS[dim].label.toLowerCase()+' category')+'</span>';
 
   const box = document.getElementById('timeChart'), W = box.clientWidth;
   if(!W) return; // hidden tab: skip until visible
@@ -526,15 +561,24 @@ function drawTime(){
     const slot = iw/n, half = Math.min(slot*0.42,72), bw = 2.2;
     const dens = (vals,t)=>vals.reduce((s,v)=>s+Math.exp(-0.5*((t-v)/bw)**2),0);
     const grid = Array.from({length:MAX+1},(_,t)=>t);
-    const D = ser.map(s=>grid.map(t=>dens(s.vals,t)));
+    const sv = ser.map((s,i)=>dist(current,i));
+    const D = sv.map(o=>grid.map(t=>dens(o.vals,t)));
     const peak = Math.max(...D.flat());
     ser.forEach((s,i)=>{
-      const a = Math.min(...s.vals)-3, b = Math.max(...s.vals)+3;
+      const vals = sv[i].vals;
+      if(dim!=='uhf'){ // few categories: range bar + one dot each
+        g += '<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+y(Math.min(...vals))+'" y2="'+y(Math.max(...vals))+'" stroke-width="8" stroke-linecap="round" style="stroke:var(--'+key+'-dot);stroke-opacity:.22"/>';
+        vals.forEach((v,k)=>{
+          g += '<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4" style="fill:var(--'+key+'-dot);fill-opacity:.75"><title>'+sv[i].labels[k]+', '+s.year+': '+v.toFixed(1)+'%</title></circle>';
+        });
+        return;
+      }
+      const a = Math.min(...vals)-3, b = Math.max(...vals)+3;
       const pts = grid.map((t,k)=>({t,d:D[i][k]})).filter(o=>o.t>=a && o.t<=b);
       const right = pts.map(o=>(x(i)+o.d/peak*half)+','+y(o.t));
       const left = pts.slice().reverse().map(o=>(x(i)-o.d/peak*half)+','+y(o.t));
       g += '<polygon points="'+right.concat(left).join(' ')+'" style="fill:var(--'+key+'-dot);fill-opacity:.22;stroke:var(--'+key+'-dot);stroke-opacity:.45"/>';
-      s.vals.forEach((v,k)=>{
+      vals.forEach((v,k)=>{
         const w = D[i][Math.round(v)]/peak*half*0.8;
         const jx = (((k*37)%17)/16*2-1)*w;
         g += '<circle cx="'+(x(i)+jx)+'" cy="'+y(v)+'" r="2" style="fill:var(--'+key+'-dot);fill-opacity:.4"/>';
@@ -567,6 +611,67 @@ function drawTime(){
     (grp ? 'All responses for '+G.cats[gcat]+' ('+G.label.toLowerCase()+')' : current.name)+' over '+n+' survey years">'+g+'</svg>';
 }
 new ResizeObserver(drawTime).observe(document.getElementById('timeChart'));
+
+const dimSels = [document.getElementById('dimSel'), document.getElementById('dimSel2')];
+dimSels.forEach(sel=>{
+  sel.innerHTML = DIMS.map(([k,l])=>'<option value="'+k+'">'+l+'</option>').join('') + '<option disabled>More tk</option>';
+  sel.addEventListener('change',()=>{ dim = sel.value; dimSels.forEach(x=>x.value = dim); draw(); drawTime(); });
+});
+
+/* ---------- By group: group 1 by group 2 ---------- */
+const GOPTS = [['age','Age group'],['boro','Borough'],['edu','Education'],['emp','Employment status'],['hac','Health Action Center neighborhood'],['hpov','Household poverty'],['marital','Marital status'],['npov','Neighborhood poverty'],['race','Race/ethnicity'],['sex','Sex'],['usb','US born or not']];
+[['g1Sel','boro'],['g2Sel','age']].forEach(([id,on])=>{
+  const sel = document.getElementById(id);
+  sel.innerHTML = GOPTS.map(([k,l])=>'<option value="'+k+'"'+(k===on?'':' disabled')+'>'+l+'</option>').join('');
+  sel.value = on; // other groups are greyed out for now
+});
+const gResp = document.getElementById('gResp');
+gResp.innerHTML = ROWS.map(r=>'<option value="'+r.key+'">'+r.name+'</option>').join('');
+gResp.addEventListener('change',()=>select(gResp.value));
+
+// Placeholder estimates + 95% CIs for Borough (rows) x Age group (columns), latest survey year.
+function cells(row){
+  const ri = ROWS.indexOf(row), last = YEARS.length-1;
+  const gb = groupSeries(row,'boro'), ga = groupSeries(row,'age');
+  return GROUPS.boro.cats.map((_,b)=>GROUPS.age.cats.map((_,a)=>{
+    const r = rng(5000+ri*997+b*61+a*17);
+    const est = Math.max(3, Math.min(MAX-3, gb[b][last]+ga[a][last]-TREND[row.key][last]+gauss(r)*1.5));
+    const hw = 1.8 + r()*3.2;
+    return {est, lo:est-hw, hi:est+hw};
+  }));
+}
+function drawGroup(){
+  const box = document.getElementById('grpChart'), W = box.clientWidth;
+  document.getElementById('grpCard').style.setProperty('--c','var(--'+current.key+'-dot)');
+  document.getElementById('gHead').innerHTML = '<b>'+current.name+'</b>: borough by age group, '+YEARS[YEARS.length-1];
+  if(!W) return; // hidden tab: skip until visible
+  const B = GROUPS.boro.cats, A = GROUPS.age.cats, key = current.key, data = cells(current), all = data.flat();
+  const lo = Math.max(0, Math.floor((Math.min(...all.map(c=>c.lo))-1)/5)*5);
+  const hi = Math.ceil((Math.max(...all.map(c=>c.hi))+1)/5)*5;
+  const step = (hi-lo)<=20 ? 5 : 10, nyc = TREND[key][YEARS.length-1];
+  const narrow = W<560, lw = narrow?84:120, gap = narrow?10:18, top = 34, rh = 40, bot = 26;
+  const cw = (W-lw-gap*(A.length-1)-6)/A.length, H = top+rh*B.length+bot, bodyB = top+rh*B.length;
+  let g = '';
+  B.forEach((b,r)=>{ g += '<text x="'+(lw-10)+'" y="'+(top+rh*r+rh/2+4)+'" text-anchor="end" font-size="13" style="fill:var(--ink)">'+b+'</text>'; });
+  A.forEach((a,c)=>{
+    const x0 = lw+c*(cw+gap), X = v=>x0+(v-lo)/(hi-lo)*cw;
+    g += '<text x="'+(x0+cw/2)+'" y="18" text-anchor="middle" font-size="13" font-weight="600" style="fill:var(--ink)">'+a+'</text>'+
+         '<line x1="'+x0+'" x2="'+(x0+cw)+'" y1="'+bodyB+'" y2="'+bodyB+'" style="stroke:var(--line)"/>';
+    for(let p=lo;p<=hi;p+=step){
+      g += '<line x1="'+X(p)+'" x2="'+X(p)+'" y1="'+top+'" y2="'+bodyB+'" style="stroke:var(--line)"/>'+
+           '<text x="'+X(p)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" style="fill:var(--muted)">'+p+'%</text>';
+    }
+    g += '<line x1="'+X(nyc)+'" x2="'+X(nyc)+'" y1="'+top+'" y2="'+bodyB+'" stroke-dasharray="3 3" style="stroke:var(--muted)"/>';
+    B.forEach((b,r)=>{
+      const d = data[r][c], cy = top+rh*r+rh/2;
+      g += '<g><title>'+b+', '+a+': '+d.est.toFixed(1)+'% (95% CI '+d.lo.toFixed(1)+'\u2013'+d.hi.toFixed(1)+')</title>'+
+           '<line x1="'+X(d.lo)+'" x2="'+X(d.hi)+'" y1="'+cy+'" y2="'+cy+'" stroke-width="2.5" stroke-linecap="round" style="stroke:var(--'+key+'-dot)"/>'+
+           '<circle cx="'+X(d.est)+'" cy="'+cy+'" r="5" stroke-width="1.5" style="fill:var(--'+key+'-dot);stroke:var(--panel)"/></g>';
+    });
+  });
+  box.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+current.name+' by borough and age group, with 95% confidence intervals">'+g+'</svg>';
+}
+new ResizeObserver(drawGroup).observe(document.getElementById('grpChart'));
 
 /* ---------- Map ---------- */
 const GEO_URL = 'https://raw.githubusercontent.com/nycehs/NYC_geography/master/UHF42.geo.json';
@@ -625,6 +730,7 @@ function showTab(tab){
   });
   draw();      // strips and chart can't be measured while hidden,
   drawTime();  // so redraw them when their tab becomes visible
+  drawGroup();
   if(tab.id==='tab-overview'){
     map.invalidateSize();
     if(layer) map.fitBounds(layer.getBounds());
