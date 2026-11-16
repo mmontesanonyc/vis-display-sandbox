@@ -77,19 +77,16 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 
 /* Overview table */
 .table{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.head,.row{display:grid;grid-template-columns:28px 150px minmax(0,1fr) 72px;align-items:center;column-gap:14px;padding:0 16px}
+.head,.row{display:grid;grid-template-columns:150px minmax(0,1fr) 72px;align-items:center;column-gap:14px;padding:0 16px}
 .head{padding-top:10px;padding-bottom:10px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)}
 .head .nyc,.val{text-align:right}
-.row{width:100%;min-height:64px;background:none;border:0;border-bottom:1px solid var(--line);font:inherit;color:inherit;text-align:left;cursor:pointer}
-.row:hover,.row[aria-pressed="true"]{background:var(--sel)}
-.mapped{width:20px;height:20px;color:var(--ink);visibility:hidden}
-.row[aria-pressed="true"] .mapped{visibility:visible}
+.row{width:100%;min-height:64px;border-bottom:1px solid var(--line)}
 .val{font-weight:600;font-size:18px;font-variant-numeric:tabular-nums}
 .strip{position:relative;height:56px}
 .dot{position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;opacity:.85}
 .mean{position:absolute;top:4px;bottom:4px;width:2px;margin-left:-1px;background:var(--ink)}
-.axis{display:grid;grid-template-columns:28px 150px minmax(0,1fr) 72px;column-gap:14px;padding:6px 16px 10px;font-size:12px;color:var(--muted)}
-.axis div{position:relative;height:16px;grid-column:3}
+.axis{display:grid;grid-template-columns:150px minmax(0,1fr) 72px;column-gap:14px;padding:6px 16px 10px;font-size:12px;color:var(--muted)}
+.axis div{position:relative;height:16px;grid-column:2}
 .axis span{position:absolute;transform:translateX(-50%)}
 
 .card-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:12px 16px;border-bottom:1px solid var(--line)}
@@ -99,6 +96,8 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 .group-pick{flex-wrap:wrap}
 .group-pick .hl-label{margin-left:14px}
 .ph-note{margin-left:6px;font-size:12px;color:var(--muted)}
+.hl-wrap{display:contents}
+.hl-wrap[hidden]{display:none}
 .dot.dim{opacity:.3}
 .dot.hl{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;opacity:1;border:2px solid var(--ink);z-index:2}
 
@@ -108,10 +107,32 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 .map-head .label b{color:var(--ink)}
 .legend{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .legend .bar{width:120px;height:10px;border-radius:5px;border:1px solid var(--line)}
-#map{height:440px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+#map{height:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.nb{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;height:600px}
+#nbPlot{height:100%;border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+#nbPlot svg{display:block}
+.nbrow .band{fill:transparent}
+.nbrow:hover .band,.nbrow.hl .band{fill:var(--sel)}
+.nbrow .nbdot{stroke:var(--panel);stroke-width:1}
+.nbrow.hl .nbdot{stroke:var(--ink);stroke-width:2}
+.sw-ci{width:18px;height:6px;border-radius:3px;background:var(--c);opacity:.35}
+/* Overview: estimate dot + CI line */
+.ci{position:absolute;top:50%;height:8px;margin-top:-4px;border-radius:4px;opacity:.35}
+.est{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid var(--panel)}
 .leaflet-container{background:var(--panel);font:inherit}
 .map-note{margin:6px 0 0;font-size:12px;color:var(--muted)}
 .map-note[hidden]{display:none}
+
+/* Info cards */
+.info-cards{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:24px}
+.info-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px 24px}
+.info-card h3{margin:0 0 10px;font-size:16px;font-weight:600;line-height:1.3}
+.info-card h4{margin:16px 0 4px;font-size:13px;font-weight:600;line-height:1.3}
+.info-card p,.info-card li{margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--muted)}
+.info-card p:last-child,.info-card ul:last-child{margin-bottom:0}
+.info-card ul{margin:0 0 12px;padding-left:20px}
+.info-card li{margin-bottom:6px}
+.info-card strong{color:var(--ink)}
 
 /* Over time */
 .controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:0 0 12px}
@@ -166,9 +187,10 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
   .app{grid-template-columns:1fr}
   aside{padding:20px;border-right:0;border-bottom:1px solid var(--line)}
   .head,.axis{display:none}
-  .row{grid-template-columns:22px 1fr 56px;grid-template-areas:"m n v" "s s s";padding:8px 12px}
-  .mapped{grid-area:m}.rname{grid-area:n}.strip{grid-area:s}.val{grid-area:v}
-  #map{height:340px}
+  .row{grid-template-columns:1fr 56px;grid-template-areas:"n v" "s s";padding:8px 12px}
+  .rname{grid-area:n}.strip{grid-area:s}.val{grid-area:v}
+  .nb{grid-template-columns:1fr;height:auto}
+  #map,#nbPlot{height:420px}
 }
 </style>
 </head>
@@ -218,29 +240,68 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
       <button class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
       <button class="tab" role="tab" id="tab-time" aria-controls="panel-time" aria-selected="false" tabindex="-1">Over time</button>
       <button class="tab" role="tab" id="tab-group" aria-controls="panel-group" aria-selected="false" tabindex="-1">By group</button>
+      <button class="tab" role="tab" id="tab-nb" aria-controls="panel-nb" aria-selected="false" tabindex="-1">By Neighborhood</button>
     </div>
 
     <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
     <div class="table">
       <div class="card-bar"><label for="dimSel">Show by</label><select id="dimSel"></select>
-        <label class="hl-label" for="hlSel">Highlight*</label><select id="hlSel"><option value="off">Off</option><option value="on">On*</option></select>
-        <span class="ph-note">*Placeholder: will let you pick a specific neighborhood, borough, age group, etc.</span></div>
+        <span class="hl-wrap" hidden><label class="hl-label" for="hlSel">Highlight*</label><select id="hlSel"><option value="off">Off</option><option value="on">On*</option></select>
+        <span class="ph-note">*Placeholder: will let you pick a specific neighborhood, borough, age group, etc.</span></span></div>
       <div class="head" aria-hidden="true">
-          <span></span><span>Response</span><span id="distHead">Distribution (42 dots)</span><span class="nyc">NYC</span>
+          <span>Response</span><span id="distHead">Estimate and 95% CI (mock data)</span><span class="nyc">NYC</span>
         </div>
-        <div id="rows" role="group" aria-label="Responses. Select one to map it."></div>
+        <div id="rows" role="group" aria-label="Responses"></div>
         <div class="axis" aria-hidden="true"><div id="ticks"></div></div>
       </div>
 
-      <div class="map-head">
-        <span class="label">Mapped: <b id="mapLabel">Excellent</b> (by UHF 42 neighborhood)</span>
-        <span class="legend" aria-hidden="true">
+      <p class="map-note" id="ovNote"></p>
+
+      <div class="info-cards">
+        <section class="info-card" aria-labelledby="dnHead">
+          <h3 id="dnHead">Data notes</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+          <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+          <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        </section>
+
+        <section class="info-card" aria-labelledby="ciHead">
+          <h3 id="ciHead">About estimates and confidence intervals</h3>
+          <p>Surveys ask a sample of people in order to learn about everyone. The result is an estimate of the true value in the whole population, not the exact value.</p>
+          <p>For example, if we survey 100 people and 20 say they have a cat, that doesn’t mean exactly 20% of the whole city has a cat. A different group of 100 people might have given us 17% or 24%. So alongside the estimate (20%), we calculate a <strong>confidence interval</strong>: a range that, with a stated level of confidence (usually 95%), is expected to include the true value. How wide the interval is depends on how many people we surveyed, how much their answers vary, and how the survey was designed and weighted. In this example, the interval might run from about 12% to 28%.</p>
+          <h4>Smaller groups mean wider intervals</h4>
+          <p>Suppose we survey 10,000 New Yorkers:</p>
+          <ul>
+            <li>For the whole sample, the interval is narrow, so we can pin down the estimate quite closely.</li>
+            <li>When we split answers by sex, each group has about 5,000 people. The intervals get somewhat wider.</li>
+            <li>When we split answers by neighborhood (there are 42 UHF neighborhoods), each has only a few hundred people on average. The intervals get much wider, so any one neighborhood’s estimate is much less precise.</li>
+          </ul>
+          <h4>Intervals help us compare groups</h4>
+          <p>Say 20% of residents in Neighborhood A report having a dog, compared with 22% in Neighborhood B. It’s tempting to say B has higher dog ownership. But if A’s interval is 16% to 24% and B’s is 18% to 26%, the two overlap heavily. The 2-point gap could easily be due to chance in who we happened to survey, so we can’t conclude there’s a real difference.</p>
+          <p><strong>In short:</strong> an estimate is our best single guess at the true value, based on asking a sample. The confidence interval shows how much uncertainty surrounds it. The narrower the interval, the more precise the estimate.</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-nb" role="tabpanel" aria-labelledby="tab-nb" hidden>
+      <div class="controls">
+        <div class="group-pick"><label for="nbResp">Response</label><select id="nbResp"></select></div>
+        <span class="legend" aria-hidden="true" style="margin-left:auto">Map shading
           <span id="legMin"></span><span class="bar" id="legBar"></span><span id="legMax"></span>
         </span>
       </div>
-      <div id="map" role="img" aria-label="Choropleth map of UHF 42 neighborhoods"></div>
+      <div class="chart-key" aria-hidden="true">
+        <span><b style="color:var(--c)">&#9679;</b> Estimate</span>
+        <span><i class="sw-ci"></i> 95% confidence interval (mock data)</span>
+        <span>Hover a neighborhood on the map or the plot to highlight it</span>
+      </div>
+      <div class="nb">
+        <div id="map" role="img" aria-label="Choropleth map of UHF 42 neighborhoods"></div>
+        <div id="nbPlot" role="img" aria-label="Dot plot of estimates with confidence intervals, one row per neighborhood, sorted high to low"></div>
+      </div>
       <p class="map-note" id="mapNote" hidden>Couldn't load the neighborhood boundaries. Check your internet connection and reload.</p>
-      <p class="map-note">Boundaries: NYC DOHMH UHF 42 neighborhoods (github.com/nycehs/NYC_geography). Map values are placeholders.</p>
+      <p class="map-note">Rows are sorted from highest to lowest estimate. Boundaries: NYC DOHMH UHF 42 neighborhoods (github.com/nycehs/NYC_geography). Estimates and confidence intervals are placeholders.</p>
     </section>
 
     <section class="panel" id="panel-time" role="tabpanel" aria-labelledby="tab-time" hidden>
@@ -250,8 +311,8 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
           <button type="button" class="seg-btn" data-mode="group" aria-pressed="false">By group</button>
         </div>
         <div class="group-pick" id="dimPick"><label for="dimSel2">Show by</label><select id="dimSel2"></select>
-          <label class="hl-label" for="hlSel2">Highlight*</label><select id="hlSel2"><option value="off">Off</option><option value="on">On*</option></select>
-          <span class="ph-note">*Placeholder: adds a trendline for one subgroup.</span></div>
+          <span class="hl-wrap" hidden><label class="hl-label" for="hlSel2">Highlight*</label><select id="hlSel2"><option value="off">Off</option><option value="on">On*</option></select>
+          <span class="ph-note">*Placeholder: adds a trendline for one subgroup.</span></span></div>
         <div class="group-pick" id="groupPick" hidden>
           <label for="groupSel">Group</label>
           <select id="groupSel"></select>
@@ -328,6 +389,8 @@ const ROWS = [
   {key:'fp',        name:'Fair or poor', mean:19.2, sd:6.0}
 ];
 
+[1.1,1.3,1.3,1.0].forEach((h,i)=>ROWS[i].hw=h); // mock CI half-widths (NYC level)
+
 // Placeholder area values: seeded, shifted so each row's values average exactly to its NYC value.
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const gauss = r => Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r());
@@ -340,10 +403,9 @@ ROWS.forEach((row,i)=>{
   row.max = Math.max(...row.vals);
 });
 
-const MAP_SVG = '<svg class="mapped" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
 
-const DIMS = [['uhf','Neighborhood'],['age','Age'],['race','Race/ethnicity'],['edu','Education level'],['boro','Borough']];
-let dim = 'uhf';
+const DIMS = [['nyc','None (NYC overall)'],['uhf','Neighborhood'],['age','Age'],['race','Race/ethnicity'],['edu','Education level'],['boro','Borough']];
+let dim = 'nyc';
 let hlOn = false; // placeholder highlight: one fixed dot per row when On
 function dist(row,p){ // values behind the dots for one row in survey year index p
   if(dim==='uhf') return {vals:row.series[p].vals, labels:null};
@@ -355,21 +417,19 @@ const host = document.getElementById('rows');
 let current = ROWS[0];
 
 ROWS.forEach(r=>{
-  const b = document.createElement('button');
-  b.className = 'row'; b.type = 'button'; b.dataset.key = r.key;
-  b.innerHTML = MAP_SVG +
+  const b = document.createElement('div');
+  b.className = 'row'; b.dataset.key = r.key;
+  b.innerHTML =
     '<span class="rname"><span class="badge '+r.key+'">'+r.name+'</span></span>' +
     '<span class="strip"></span>' +
     '<span class="val">'+r.mean.toFixed(1)+'%</span>';
-  b.addEventListener('click',()=>select(r.key));
   host.appendChild(b);
 });
 
 // One selection drives the dot-plot rows, the map and the trend chart.
 function select(key){
   current = ROWS.find(r=>r.key===key);
-  host.querySelectorAll('.row').forEach(b=>b.setAttribute('aria-pressed', b.dataset.key===key));
-  document.getElementById('mapLabel').textContent = current.name;
+  document.getElementById('panel-nb').style.setProperty('--c','var(--'+key+'-dot)');
   document.getElementById('timeCard').style.setProperty('--c','var(--'+key+'-dot)');
   recolor();
   drawTime();
@@ -380,11 +440,20 @@ function select(key){
 // Simple beeswarm: dots sit at their value on x and stack vertically to avoid overlap.
 function draw(){
   const D = 9;
-  document.getElementById('distHead').textContent = 'Distribution ('+(dim==='uhf'?N:GROUPS[dim].cats.length)+' dots)';
+  document.getElementById('ovNote').textContent = dim==='nyc'
+    ? 'Dots are NYC estimates; lines are 95% confidence intervals. Confidence intervals are mock data. Use \u201cShow by\u201d to break the estimates out by group.'
+    : 'Each dot is one category; the vertical line marks the NYC value. Values are placeholders.';
+  document.getElementById('distHead').textContent = dim==='nyc' ? 'Estimate and 95% CI (mock data)' : 'Distribution ('+(dim==='uhf'?N:GROUPS[dim].cats.length)+' dots)';
   host.querySelectorAll('.row').forEach((b,i)=>{
     const r = ROWS[i], s = b.querySelector('.strip'), w = s.clientWidth, placed = [];
     if(!w) return; // hidden tab: skip until visible
     s.innerHTML = '';
+    if(dim==='nyc'){
+      const c = ciAt(r, YEARS.length-1), X = v=>v/MAX*w, col = 'background:var(--'+r.key+'-dot)';
+      s.innerHTML = '<span class="ci" style="left:'+X(c.lo)+'px;width:'+(X(c.hi)-X(c.lo))+'px;'+col+'"></span>'+
+        '<span class="est" title="'+c.est.toFixed(1)+'% (95% CI '+c.lo.toFixed(1)+'\u2013'+c.hi.toFixed(1)+', mock)" style="left:'+X(c.est)+'px;'+col+'"></span>';
+      return;
+    }
     const dd = dist(r, YEARS.length-1);
     const hlIdx = dim==='uhf' ? 5 : Math.min(1, dd.vals.length-1);
     dd.vals.map((v,k)=>({v,k})).sort((a,c)=>a.v-c.v).forEach(o=>{
@@ -433,6 +502,11 @@ ROWS.forEach((row,i)=>{
     return {year, mean, vals:v.map(x=>Math.min(MAX-1, Math.max(0.5, x+shift)))};
   });
 });
+
+function ciAt(row,p){ // mock 95% CI around the NYC estimate for survey year index p
+  const r = rng(300+ROWS.indexOf(row)*11+p*3), hw = row.hw*(0.9+0.25*r()), m = row.series[p].mean;
+  return {est:m, lo:m-hw, hi:m+hw};
+}
 
 const GROUPS = {
   age:  {label:'Age',             cats:['18–24','25–44','45–64','65+']},
@@ -541,7 +615,7 @@ function drawTime(){
     : '<b>'+current.name+'</b>: NYC mean over time';
   document.getElementById('chartKey').innerHTML = grp
     ? ROWS.map(r=>'<span><i class="sw-line" style="--c:var(--'+r.key+'-dot)"></i> '+r.name+'</span>').join('')
-    : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> '+(dim==='uhf' ? 'Distribution across the 42 neighborhoods' : 'Each dot is one '+GROUPS[dim].label.toLowerCase()+' category')+'</span>'+(hlOn ? '<span><i class="sw-line" style="--c:var(--ink)"></i> Highlighted: '+(dim==='uhf' ? 'one neighborhood' : GROUPS[dim].cats[Math.min(1,GROUPS[dim].cats.length-1)])+'*</span>' : '');
+    : dim==='nyc' ? '<span><i class="sw-line"></i> NYC estimate</span><span><i class="sw-ci"></i> 95% CI (mock data)</span>' : '<span><i class="sw-line"></i> NYC mean</span><span><i class="sw-dist"></i> '+(dim==='uhf' ? 'Distribution across the 42 neighborhoods' : 'Each dot is one '+GROUPS[dim].label.toLowerCase()+' category')+'</span>'+(hlOn ? '<span><i class="sw-line" style="--c:var(--ink)"></i> Highlighted: '+(dim==='uhf' ? 'one neighborhood' : GROUPS[dim].cats[Math.min(1,GROUPS[dim].cats.length-1)])+'*</span>' : '');
 
   const box = document.getElementById('timeChart'), W = box.clientWidth;
   if(!W) return; // hidden tab: skip until visible
@@ -573,11 +647,16 @@ function drawTime(){
     const slot = iw/n, half = Math.min(slot*0.42,72), bw = 2.2;
     const dens = (vals,t)=>vals.reduce((s,v)=>s+Math.exp(-0.5*((t-v)/bw)**2),0);
     const grid = Array.from({length:MAX+1},(_,t)=>t);
-    const sv = ser.map((s,i)=>dist(current,i));
+    const sv = ser.map((s,i)=>dim==='nyc' ? {vals:[s.mean],labels:null} : dist(current,i));
     const D = sv.map(o=>grid.map(t=>dens(o.vals,t)));
     const peak = Math.max(...D.flat());
     ser.forEach((s,i)=>{
       const vals = sv[i].vals;
+      if(dim==='nyc'){
+        const c = ciAt(current,i);
+        g += '<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+y(c.hi)+'" y2="'+y(c.lo)+'" stroke-width="12" stroke-linecap="round" style="stroke:var(--'+key+'-dot);stroke-opacity:.3"><title>'+s.year+': 95% CI '+c.lo.toFixed(1)+'\u2013'+c.hi.toFixed(1)+' (mock)</title></line>';
+        return;
+      }
       if(dim!=='uhf'){ // few categories: range bar + one dot each
         g += '<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+y(Math.min(...vals))+'" y2="'+y(Math.max(...vals))+'" stroke-width="8" stroke-linecap="round" style="stroke:var(--'+key+'-dot);stroke-opacity:.22"/>';
         vals.forEach((v,k)=>{
@@ -596,7 +675,7 @@ function drawTime(){
         g += '<circle cx="'+(x(i)+jx)+'" cy="'+y(v)+'" r="2" style="fill:var(--'+key+'-dot);fill-opacity:.4"/>';
       });
     });
-    if(hlOn){ // placeholder: trendline for one fixed subgroup
+    if(hlOn && dim!=='nyc'){ // placeholder: trendline for one fixed subgroup
       const hk = dim==='uhf' ? 5 : Math.min(1, sv[0].vals.length-1);
       g += '<polyline fill="none" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round" style="stroke:var(--ink)" points="'+
            sv.map((o,i)=>x(i)+','+y(o.vals[hk])).join(' ')+'"/>';
@@ -635,7 +714,7 @@ new ResizeObserver(drawTime).observe(document.getElementById('timeChart'));
 const dimSels = [document.getElementById('dimSel'), document.getElementById('dimSel2')];
 dimSels.forEach(sel=>{
   sel.innerHTML = DIMS.map(([k,l])=>'<option value="'+k+'">'+l+'</option>').join('') + '<option disabled>More tk</option>';
-  sel.addEventListener('change',()=>{ dim = sel.value; dimSels.forEach(x=>x.value = dim); draw(); drawTime(); });
+  sel.addEventListener('change',()=>{ dim = sel.value; dimSels.forEach(x=>x.value = dim); document.querySelectorAll('.hl-wrap').forEach(w=>w.hidden = dim==='nyc'); draw(); drawTime(); });
 });
 
 /* ---------- By group: group 1 by group 2 ---------- */
@@ -699,45 +778,96 @@ new ResizeObserver(drawGroup).observe(document.getElementById('grpChart'));
   draw(); drawTime();
 }));
 
-/* ---------- Map ---------- */
+/* ---------- By Neighborhood: map + dot plot ---------- */
 const GEO_URL = 'https://raw.githubusercontent.com/nycehs/NYC_geography/master/UHF42.geo.json';
 const map = L.map('map', {zoomSnap:0.25, attributionControl:false});
-let layer = null;
+let layer = null, hover = -1;
+const layers = [];
+const NB_HW = (()=>{ const r = rng(900); return Array.from({length:N},()=>1.2+r()*2.6); })(); // mock CI half-widths
+const nbResp = document.getElementById('nbResp');
+nbResp.innerHTML = ROWS.map(r=>'<option value="'+r.key+'">'+r.name+'</option>').join('');
+nbResp.addEventListener('change',()=>select(nbResp.value));
 
 function nameOf(props){
   const k = Object.keys(props||{}).find(k=>/name/i.test(k));
   return k ? props[k] : 'Neighborhood';
 }
-function colorNow(){
-  return getComputedStyle(document.documentElement).getPropertyValue('--'+current.key+'-dot').trim();
-}
-// Same hue as the selected row's dots; darker = higher value within that row's range.
+const cssVar = n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function nbCI(i){ const e = current.vals[i], hw = NB_HW[i]*current.sd/5; return {est:e, lo:e-hw, hi:e+hw}; }
+// Same hue as the selected response's dots; darker = higher value within that response's range.
 function styleFor(l){
   const v = current.vals[l._idx % N];
   const t = (v-current.min)/((current.max-current.min)||1);
-  return {fillColor:colorNow(), fillOpacity:0.2+0.75*t, color:'#fff', weight:1};
+  const on = l._idx===hover;
+  return {fillColor:cssVar('--'+current.key+'-dot'), fillOpacity:0.2+0.75*t, color:on?cssVar('--ink'):'#fff', weight:on?2.5:1};
 }
 function recolor(){
-  const c = colorNow();
+  const c = cssVar('--'+current.key+'-dot');
   document.getElementById('legBar').style.background =
     'linear-gradient(90deg,color-mix(in srgb,'+c+' 20%,transparent),'+c+')';
   document.getElementById('legMin').textContent = current.min.toFixed(1)+'%';
   document.getElementById('legMax').textContent = current.max.toFixed(1)+'%';
+  nbResp.value = current.key;
   if(layer) layer.eachLayer(l=>l.setStyle(styleFor(l)));
+  drawNb();
 }
+
+// Shared hover: the map polygon and the dot-plot row for one neighborhood light up together.
+function setHover(i, src){
+  if(i===hover) return;
+  const prev = hover; hover = i;
+  if(layers[prev]){ if(src==='plot') layers[prev].closeTooltip(); layers[prev].setStyle(styleFor(layers[prev])); }
+  if(layers[i]){
+    layers[i].setStyle(styleFor(layers[i])); layers[i].bringToFront();
+    if(src==='plot') layers[i].openTooltip(layers[i].getBounds().getCenter());
+  }
+  const box = document.getElementById('nbPlot');
+  box.querySelectorAll('.nbrow.hl').forEach(el=>el.classList.remove('hl'));
+  const el = box.querySelector('.nbrow[data-i="'+i+'"]');
+  if(el) el.classList.add('hl');
+}
+
+function drawNb(){
+  const box = document.getElementById('nbPlot'), W = box.clientWidth, H = box.clientHeight;
+  if(!W || !H) return; // hidden tab: skip until visible
+  const cis = Array.from({length:N},(_,i)=>nbCI(i));
+  const order = cis.map((_,i)=>i).sort((a,b)=>cis[b].est-cis[a].est);
+  const lo = Math.max(0, Math.floor((Math.min(...cis.map(c=>c.lo))-1)/5)*5);
+  const hi = Math.ceil((Math.max(...cis.map(c=>c.hi))+1)/5)*5, step = (hi-lo)>25 ? 10 : 5;
+  const m = {l:14, r:16, t:8, b:26}, iw = W-m.l-m.r, rh = (H-m.t-m.b)/N;
+  const X = v=>m.l+(v-lo)/(hi-lo)*iw, lw = Math.min(6, rh*0.45), dr = Math.min(4.5, rh*0.36);
+  let g = '';
+  for(let p=lo;p<=hi;p+=step){
+    g += '<line x1="'+X(p)+'" x2="'+X(p)+'" y1="'+m.t+'" y2="'+(H-m.b)+'" style="stroke:var(--line)"/>'+
+         '<text x="'+X(p)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" style="fill:var(--muted)">'+p+'%</text>';
+  }
+  order.forEach((i,k)=>{
+    const c = cis[i], cy = m.t+rh*(k+0.5);
+    g += '<g class="nbrow'+(i===hover?' hl':'')+'" data-i="'+i+'"><title>'+c.est.toFixed(1)+'% (95% CI '+c.lo.toFixed(1)+'\u2013'+c.hi.toFixed(1)+', mock)</title>'+
+         '<rect class="band" x="0" y="'+(m.t+rh*k)+'" width="'+W+'" height="'+rh+'"/>'+
+         '<line x1="'+X(c.lo)+'" x2="'+X(c.hi)+'" y1="'+cy+'" y2="'+cy+'" stroke-width="'+lw+'" stroke-linecap="round" style="stroke:var(--c);stroke-opacity:.35"/>'+
+         '<circle class="nbdot" cx="'+X(c.est)+'" cy="'+cy+'" r="'+dr+'" style="fill:var(--c)"/></g>';
+  });
+  box.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'">'+g+'</svg>';
+}
+const nbPlot = document.getElementById('nbPlot');
+nbPlot.addEventListener('mouseover',e=>{ const r = e.target.closest('.nbrow'); if(r) setHover(+r.dataset.i,'plot'); });
+nbPlot.addEventListener('mouseleave',()=>setHover(-1,'plot'));
+new ResizeObserver(drawNb).observe(nbPlot);
 
 fetch(GEO_URL).then(r=>r.json()).then(gj=>{
   let i = 0;
   layer = L.geoJSON(gj, {
     style: f=>({color:'#fff', weight:1, fillOpacity:0}),
     onEachFeature:(f,l)=>{
-      l._idx = i++; // placeholder: Nth polygon gets the Nth dot value. Join by UHF code when you have real data.
-      l.bindTooltip(()=>nameOf(f.properties)+': '+current.vals[l._idx % N].toFixed(1)+'%', {sticky:true});
-      l.on('mouseover',()=>l.setStyle({weight:3}));
-      l.on('mouseout',()=>l.setStyle({weight:1}));
+      const k = i++; // placeholder: Nth polygon gets the Nth neighborhood value. Join by UHF code when you have real data.
+      l._idx = k; layers[k] = l;
+      l.bindTooltip(()=>nameOf(f.properties)+': '+current.vals[k % N].toFixed(1)+'%', {sticky:true});
+      l.on('mouseover',()=>setHover(k,'map'));
+      l.on('mouseout',()=>setHover(-1,'map'));
     }
   }).addTo(map);
-  map.fitBounds(layer.getBounds());
+  if(document.getElementById('map').clientWidth) map.fitBounds(layer.getBounds());
   recolor();
 }).catch(()=>{ document.getElementById('mapNote').hidden = false; });
 
@@ -757,9 +887,10 @@ function showTab(tab){
   draw();      // strips and chart can't be measured while hidden,
   drawTime();  // so redraw them when their tab becomes visible
   drawGroup();
-  if(tab.id==='tab-overview'){
+  if(tab.id==='tab-nb'){
     map.invalidateSize();
     if(layer) map.fitBounds(layer.getBounds());
+    drawNb();
   }
 }
 tabs.forEach((t,i)=>{
