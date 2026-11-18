@@ -42,7 +42,14 @@ select:focus-visible,.row:focus-visible{outline:3px solid var(--focus);outline-o
 main{padding:40px clamp(20px,4vw,56px);max-width:1040px}
 h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1.2}
 .question{margin:0 0 14px;color:var(--muted)}
-.summary{margin:0 0 28px;max-width:62ch;font-size:20px;line-height:1.5;color:var(--ink)}
+.summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:76px;margin:0 0 28px;padding:14px 18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;font-size:18px;line-height:1.5;color:var(--ink)}
+.summary.idle .s-text{color:var(--muted)}
+.summary.pinned{border-color:var(--ink)}
+.summary .s-ci{display:block;font-size:13px;color:var(--muted)}
+.summary .s-pin{flex:none;font-size:12px;color:var(--muted)}
+#rows .row.on{background:var(--sel)}
+#rows .dot.on{opacity:1;box-shadow:0 0 0 2px var(--ink);z-index:2}
+#rows.nyc-mode .row,#rows .dot{cursor:pointer}
 .summary b{font-weight:700;white-space:nowrap}
 .question strong{color:var(--ink)}
 .q-text{margin:4px 0 0;font-size:17px;color:var(--ink);max-width:70ch}
@@ -139,6 +146,10 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
 .info-card strong{color:var(--ink)}
 
 /* Over time */
+.nb-summary{flex:1 1 320px;display:flex;align-items:center;min-height:48px;padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;font-size:14px;line-height:1.45;color:var(--ink)}
+.nb-summary.idle{color:var(--muted)}
+.nb-controls{align-items:flex-end}
+.group-pick.stack{flex-direction:column;align-items:flex-start;gap:4px}
 .controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin:0 0 12px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
 .seg-btn{padding:8px 16px;font:inherit;font-weight:600;color:var(--muted);background:none;border:0;cursor:pointer}
@@ -240,7 +251,7 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
       <p class="q-text" id="qtext">Would you say that your health is excellent, very good, good, or fair or poor?</p>
     </div>
 
-    <p class="summary" id="summary"></p>
+    <div class="summary idle" id="summary"><span class="s-text">Hover or click on the display below for a summary.</span></div>
 
     <section id="overview" aria-label="Overview">
     <div class="table">
@@ -265,8 +276,9 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
     </div>
 
     <section class="panel" id="panel-nb" role="tabpanel" aria-labelledby="tab-nb">
-      <div class="controls">
-        <div class="group-pick"><label for="nbResp">Response</label><select id="nbResp"></select></div>
+      <div class="controls nb-controls">
+        <div class="group-pick stack"><!--<label for="nbResp">Response</label>--><select id="nbResp"></select></div>
+        <div class="nb-summary idle" id="nbSummary"><span>Hover over a neighborhood on the map or plot for a summary.</span></div>
       </div>
       <div class="nb">
         <div class="map-card">
@@ -447,11 +459,13 @@ function draw(){
   host.querySelectorAll('.row').forEach((b,i)=>{
     const r = ROWS[i], s = b.querySelector('.strip'), w = s.clientWidth, placed = [];
     if(!w) return; // hidden tab: skip until visible
+    host.classList.toggle('nyc-mode', dim==='nyc');
+    if(dim==='nyc') b.setAttribute('tabindex','0'); else b.removeAttribute('tabindex');
     s.innerHTML = '';
     if(dim==='nyc'){
       const c = ciAt(r, YEARS.length-1), X = v=>v/MAX*w, col = 'background:var(--'+r.key+'-dot)';
       s.innerHTML = '<span class="ci" style="left:'+X(c.lo)+'px;width:'+(X(c.hi)-X(c.lo))+'px;'+col+'"></span>'+
-        '<span class="est" title="'+c.est.toFixed(1)+'% (95% CI '+c.lo.toFixed(1)+'\u2013'+c.hi.toFixed(1)+', mock)" style="left:'+X(c.est)+'px;'+col+'"></span>';
+        '<span class="est" style="left:'+X(c.est)+'px;'+col+'"></span>';
       return;
     }
     const dd = dist(r, YEARS.length-1);
@@ -464,7 +478,7 @@ function draw(){
           placed.push({x,y});
           const d = document.createElement('span');
           d.className = 'dot' + (hlOn ? (o.k===hlIdx ? ' hl' : ' dim') : '');
-          d.title = (dd.labels?dd.labels[o.k]+': ':'')+v.toFixed(1)+'%';
+          d.dataset.k = o.k;
           d.style.cssText = 'left:'+x+'px;top:calc(50% + '+y+'px);background:var(--'+r.key+'-dot)';
           s.appendChild(d);
           break;
@@ -482,6 +496,7 @@ function draw(){
     el.textContent = p+'%'; el.style.left = (p/MAX*100)+'%';
     t.appendChild(el);
   }
+  ovApply();
 }
 
 /* ---------- Over time ---------- */
@@ -714,7 +729,7 @@ new ResizeObserver(drawTime).observe(document.getElementById('timeChart'));
 const dimSels = [document.getElementById('dimSel'), document.getElementById('dimSel2')];
 dimSels.forEach(sel=>{
   sel.innerHTML = DIMS.map(([k,l])=>'<option value="'+k+'">'+l+'</option>').join('') + '<option disabled>More tk</option>';
-  sel.addEventListener('change',()=>{ dim = sel.value; dimSels.forEach(x=>x.value = dim); document.querySelectorAll('.hl-wrap').forEach(w=>w.hidden = dim==='nyc'); draw(); drawTime(); });
+  sel.addEventListener('change',()=>{ dim = sel.value; dimSels.forEach(x=>x.value = dim); document.querySelectorAll('.hl-wrap').forEach(w=>w.hidden = dim==='nyc'); ovHover = ovPin = null; ovRender(); draw(); drawTime(); });
 });
 
 /* ---------- By group: group 1 by group 2 ---------- */
@@ -809,6 +824,7 @@ function recolor(){
   document.getElementById('legMax').textContent = current.max.toFixed(1)+'%';
   nbResp.value = current.key;
   if(layer) layer.eachLayer(l=>l.setStyle(styleFor(l)));
+  nbRender();
   drawNb();
 }
 
@@ -821,10 +837,22 @@ function setHover(i, src){
     layers[i].setStyle(styleFor(layers[i])); layers[i].bringToFront();
     if(src==='plot') layers[i].openTooltip(layers[i].getBounds().getCenter());
   }
+  nbRender();
   const box = document.getElementById('nbPlot');
   box.querySelectorAll('.nbrow.hl').forEach(el=>el.classList.remove('hl'));
   const el = box.querySelector('.nbrow[data-i="'+i+'"]');
   if(el) el.classList.add('hl');
+}
+
+// Tooltip-style sentence next to the Response dropdown. "About the same" when the neighborhood's CI contains the NYC value.
+function nbRender(){
+  const box = document.getElementById('nbSummary'), i = hover;
+  box.classList.toggle('idle', i<0);
+  if(i<0){ box.innerHTML = '<span>Hover over a neighborhood on the map or plot for a summary.</span>'; return; }
+  const c = nbCI(i), f = layers[i] && layers[i].feature, nm = f ? nameOf(f.properties) : 'this neighborhood';
+  const cmp = (c.lo<=current.mean && current.mean<=c.hi) ? 'about the same as' : (c.est>current.mean ? 'higher than' : 'lower than');
+  const fg = t=>'<b style="color:var(--'+current.key+'-fg)">'+t+'</b>';
+  box.innerHTML = '<span>In '+nm+', '+fg(c.est.toFixed(1)+'%')+' of residents report that their health is '+fg(current.name.toLowerCase())+' \u2013 <b>'+cmp+'</b> the NYC average.</span>';
 }
 
 function drawNb(){
@@ -876,15 +904,63 @@ fetch(GEO_URL).then(r=>r.json()).then(gj=>{
   recolor();
 }).catch(()=>{ document.getElementById('mapNote').hidden = false; });
 
-// "When surveyed, 21.0% of New Yorkers say that their health is excellent, ..."
-(function(){
-  const part = r=>'<b style="color:var(--'+r.key+'-fg)">'+r.mean.toFixed(1)+'%</b>';
-  const lab  = r=>'<b style="color:var(--'+r.key+'-fg)">'+r.name.toLowerCase()+'</b>';
-  const [a,b,c,d] = ROWS;
-  document.getElementById('summary').innerHTML =
-    'When surveyed, '+part(a)+' of New Yorkers say that their health is '+lab(a)+', '+
-    part(b)+' say '+lab(b)+', '+part(c)+' say '+lab(c)+', and '+part(d)+' say '+lab(d)+'.';
-})();
+// Overview summary: hover (or focus) a row / dot to read it as a sentence; click to hold it, click again to release.
+let ovHover = null, ovPin = null; // {i: row index, k: dot index or null in NYC view}
+const sameItem = (a,b)=>!!a && !!b && a.i===b.i && a.k===b.k;
+const fgText = (r,t)=>'<b style="color:var(--'+r.key+'-fg)">'+t+'</b>';
+function ovSubject(k){
+  if(dim==='nyc') return 'of New Yorkers';
+  if(dim==='uhf'){
+    const f = layers[k] && layers[k].feature, nm = f ? nameOf(f.properties) : null;
+    return nm ? 'of residents of '+nm : 'of New Yorkers in this neighborhood';
+  }
+  const c = GROUPS[dim].cats[k];
+  if(dim==='age')  return 'of New Yorkers aged '+c;
+  if(dim==='race') return 'of '+c+' New Yorkers';
+  if(dim==='boro') return 'of '+c+' residents';
+  return 'of New Yorkers '+({'Less than HS':'with less than a high school education','HS graduate':'who are high school graduates','Some college':'with some college','College grad':'who are college graduates'}[c]||('in the group '+c));
+}
+function ovSentence(it){
+  const r = ROWS[it.i], last = YEARS.length-1;
+  let v, ci = '';
+  if(dim==='nyc'){ const c = ciAt(r,last); v = c.est; ci = '<span class="s-ci">95% confidence interval: '+c.lo.toFixed(1)+'\u2013'+c.hi.toFixed(1)+'% (mock data)</span>'; }
+  else v = dist(r,last).vals[it.k];
+  return 'When surveyed, '+fgText(r,v.toFixed(1)+'%')+' '+ovSubject(it.k)+' say that their health is '+fgText(r,r.name.toLowerCase())+'.'+ci;
+}
+function ovRender(){
+  const box = document.getElementById('summary'), it = ovPin || ovHover;
+  box.classList.toggle('idle', !it);
+  box.classList.toggle('pinned', !!ovPin);
+  box.innerHTML = '<span class="s-text">'+(it ? ovSentence(it) : 'Hover or click on the display below for a summary.')+'</span>'+
+                  (ovPin ? '<span class="s-pin">Held \u00b7 click again to release</span>' : '');
+}
+function ovApply(){ // mark the active row / dot (also after every redraw)
+  const it = ovPin || ovHover;
+  host.querySelectorAll('.on').forEach(el=>el.classList.remove('on'));
+  if(!it) return;
+  const row = host.querySelectorAll('.row')[it.i];
+  if(!row) return;
+  if(it.k===null) row.classList.add('on');
+  else { const d = row.querySelector('.dot[data-k="'+it.k+'"]'); if(d) d.classList.add('on'); }
+}
+function ovItem(target){
+  const row = target.closest && target.closest('.row');
+  if(!row) return null;
+  const i = ROWS.findIndex(r=>r.key===row.dataset.key);
+  if(dim==='nyc') return {i, k:null};
+  const d = target.closest('.dot');
+  return d ? {i, k:+d.dataset.k} : null;
+}
+function ovSet(it){ ovHover = it; ovRender(); ovApply(); }
+host.addEventListener('mouseover',e=>{ const it = ovItem(e.target); if(!sameItem(it,ovHover)) ovSet(it); });
+host.addEventListener('mouseleave',()=>ovSet(null));
+host.addEventListener('focusin',e=>ovSet(ovItem(e.target)));
+host.addEventListener('focusout',()=>ovSet(null));
+function ovToggle(it){ if(!it) return; ovPin = sameItem(it,ovPin) ? null : it; ovRender(); ovApply(); }
+host.addEventListener('click',e=>ovToggle(ovItem(e.target)));
+host.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ') && e.target.classList.contains('row')){ e.preventDefault(); ovToggle(ovItem(e.target)); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && ovPin){ ovPin = null; ovRender(); ovApply(); } });
+document.addEventListener('click',e=>{ if(ovPin && !host.contains(e.target) && !document.getElementById('summary').contains(e.target)){ ovPin = null; ovRender(); ovApply(); } });
 select('excellent');
 draw();
 new ResizeObserver(draw).observe(host);
