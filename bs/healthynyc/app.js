@@ -7,7 +7,7 @@ const toNumber = (v) => {
   return Number.isFinite(n) ? n : null; // blank or "*" (suppressed) -> null
 };
 
-function buildSpec(chart, rows, height) {
+function buildSpec(chart, rows, height, groupColors = {}) {
   const data = rows
     .filter((r) => r.Indicator === chart.indicator && r.Units === chart.units &&
                    (!chart.groups || chart.groups.includes(r.Group)))
@@ -19,9 +19,25 @@ function buildSpec(chart, rows, height) {
     width: 'container',
     height,
     autosize: { type: 'fit-x', contains: 'padding' },
-    config: { font: 'inherit', axis: { labelFontSize: 12, titleFontSize: 12 } },
+    padding: { left: 0, right: 8, top: 8, bottom: 8 },
+    config: { font: 'inherit', axis: { labelFontSize: 12, titleFontSize: 12 }, view: { stroke: null }, legend: { orient: 'top', direction: 'horizontal', title: null } },
   };
   const multi = new Set(data.map((d) => d.group)).size > 1;
+
+  // Reference lines can be fixed values or targets calculated from a
+  // specified baseline year/group (for example, a percent reduction from 2021).
+  let referenceLineValue = null;
+  if (chart.referenceLine) {
+    const ref = chart.referenceLine;
+    if (Number.isFinite(ref.value)) {
+      referenceLineValue = ref.value;
+    } else if (Number.isFinite(ref.baselineYear) && ref.baselineGroup &&
+               Number.isFinite(ref.reduction)) {
+      const baseline = data.find((d) => d.year === ref.baselineYear &&
+                                 d.group === ref.baselineGroup && d.value !== null);
+      if (baseline) referenceLineValue = baseline.value * (1 - ref.reduction);
+    }
+  }
 
   if (chart.type === 'bar') {
     const d = data.filter((r) => String(r.year) === String(chart.year) && r.value !== null);
@@ -32,6 +48,13 @@ function buildSpec(chart, rows, height) {
       layer: [{ mark: 'bar' },
               { mark: { type: 'text', align: 'left', dx: 4 }, encoding: { text: { field: 'value', type: 'quantitative', format: ',.1~f' } } }] };
   }
+  const finiteValues = data.map((d) => d.value).filter(Number.isFinite);
+  const domainCandidates = [...finiteValues];
+  if (referenceLineValue !== null && Number.isFinite(referenceLineValue)) domainCandidates.push(referenceLineValue);
+  const dataMin = domainCandidates.length ? Math.min(...domainCandidates) : 0;
+  const dataMax = domainCandidates.length ? Math.max(...domainCandidates) : 1;
+  const yDomainMin = dataMin - Math.max((dataMax - dataMin) * 0.08, Math.abs(dataMin) * 0.02, 0.1);
+
   const sharedEncoding = {
     x: {
       field: 'year',
@@ -44,15 +67,12 @@ function buildSpec(chart, rows, height) {
       field: 'value',
       type: 'quantitative',
       title: null,
-      scale: { zero: false },
-      axis: { tickCount: 4, title: null, grid: true },
+      scale: { zero: false, domainMin: yDomainMin },
+      axis: { tickCount: 4, title: null, grid: true, labelLimit: 1000, minExtent: 64, labelFlush: false },
     },
-    ...(multi ? { color: { field: 'group', type: 'nominal', title: null } } : {}),
+    ...(multi ? { color: { field: 'group', type: 'nominal', title: null, scale: { domain: Object.keys(groupColors), range: Object.values(groupColors) }, legend: { orient: 'top', direction: 'horizontal', title: null } } } : {}),
   };
-  return {
-    ...base,
-    data: { values: data },
-    layer: [
+  const layers = [
       {
         mark: { type: 'line', strokeWidth: 2 },
         encoding: sharedEncoding,
@@ -78,8 +98,31 @@ function buildSpec(chart, rows, height) {
           ],
         },
       },
-    ],
-  };
+  ];
+  if (referenceLineValue !== null && Number.isFinite(referenceLineValue)) {
+    layers.push({
+      data: { values: [{ target: referenceLineValue }] },
+      mark: { type: 'rule', color: '#555', strokeDash: [6, 4], strokeWidth: 2 },
+      encoding: {
+        x: { datum: 2015, type: 'quantitative' },
+        x2: { datum: 2030 },
+        y: { field: 'target', type: 'quantitative' },
+        tooltip: [{ field: 'target', type: 'quantitative', title: chart.referenceLine.label || 'Target', format: ',.1~f' }],
+      },
+    });
+    if (chart.referenceLine.annotation) {
+      layers.push({
+        data: { values: [{ target: referenceLineValue, label: chart.referenceLine.annotation }] },
+        mark: { type: 'text', align: 'right', baseline: 'bottom', dx: -6, dy: -6, fontSize: 11, color: '#444' },
+        encoding: {
+          x: { datum: 2030, type: 'quantitative' },
+          y: { field: 'target', type: 'quantitative' },
+          text: { field: 'label' },
+        },
+      });
+    }
+  }
+  return { ...base, data: { values: data }, layer: layers };
 }
 
 function createChart(setKey, chart, defaults, rows) {
@@ -96,22 +139,26 @@ function createChart(setKey, chart, defaults, rows) {
   cap.append(title, sub);
   const body = document.createElement('div');
   body.className = 'chart-body';
+  const annotation = document.createElement('p');
+  annotation.className = 'chart-annotation';
   const note = document.createElement('p');
   note.className = 'chart-note';
   const small = document.createElement('small');
   note.append(small);
-  fig.append(cap, body, note);
+  fig.append(cap, body, annotation, note);
 
   let embedded = null;
   async function show(c) {
     title.textContent = c.title;
     sub.textContent = c.subtitle || '';
     sub.hidden = !c.subtitle;
+    annotation.textContent = c.annotation || '';
+    annotation.hidden = !annotation.textContent;
     small.textContent = c.note ?? defaults.note ?? '';
     note.hidden = !small.textContent;
     if (embedded) embedded.finalize();
     try {
-      embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height), { actions: false, renderer: 'svg' });
+      embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height, defaults.groupColors || {}), { actions: false, renderer: 'svg' });
     } catch (e) {
       body.textContent = 'This chart could not be displayed.';
       console.error(setKey, c.id, e);

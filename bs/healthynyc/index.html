@@ -16,9 +16,91 @@
     .chart-views button[aria-pressed="true"] { background: #1a1a1a; color: #fff; }
     .chart-views + figure.chart { margin-top: .75rem; }
     .chart-note { margin: .25rem 0 0; }
+    .chart-annotation { margin: .4rem 0 0; }
+    .chart-body { box-sizing: border-box; padding-left: 0px; width: 100%; overflow: visible; }
     section { clear: both; }
     .chart-body { width: 100%; }
     .vega-embed { display: block; width: 100%; }
+
+
+/* Chart cards */
+.chart {
+  background: #fff;
+  border: 1px solid #e5e9ef;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(20, 35, 55, 0.045);
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem 1rem;
+  overflow: visible;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.chart:hover {
+  border-color: #d3dce7;
+  box-shadow: 0 4px 14px rgba(20, 35, 55, 0.075);
+}
+
+/* Chart title */
+.chart-title {
+  margin: 0 0 0.35rem;
+  color: #172b43;
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+/* Chart subtitle */
+.chart-subtitle {
+  color: #68788a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 1rem;
+}
+
+/* Chart visualization container */
+.chart-body {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.25rem 0.25rem 0;
+  overflow: visible;
+}
+
+/* Chart annotations */
+.chart-annotation {
+  color: #526579;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  margin: 0.75rem 0 0;
+}
+
+/* Source notes */
+.chart-source {
+  color: #8995a3;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #edf0f4;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .chart {
+    border-radius: 9px;
+    margin: 1rem 0;
+    padding: 1rem 0.65rem 0.75rem;
+  }
+
+  .chart-title {
+    font-size: 1.05rem;
+  }
+
+  .chart-body {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -42,7 +124,7 @@
   <p>Yet, there is still more work to do to ensure everyone has the chance to live the healthiest, longest life possible. Extreme racial inequities persist among other causes of death in our city. To address this, intentional and targeted public health investments are necessary to ensure longer, more equitable, and healthier futures for every New Yorker.</p>
 
   <!-- Not yet replaced: still the original Datawrapper chart -->
-  <iframe src="https://datawrapper.dwcdn.net/65PvZ/1/" title="HealthyNYC goals by driver" width="100%" height="450" style="border:0"></iframe>
+  <iframe src="https://datawrapper.dwcdn.net/65PvZ/1/" title="HealthyNYC goals by driver" width="100%" height="550" style="border:0"></iframe>
 
   <hr>
 
