@@ -68,7 +68,7 @@ function buildSpec(chart, rows, height, groupColors = {}) {
       type: 'quantitative',
       title: null,
       scale: { zero: false, domainMin: yDomainMin },
-      axis: { tickCount: 4, title: null, grid: true, labelLimit: 1000, minExtent: 64, labelFlush: false },
+      axis: { tickCount: 4, title: null, grid: true, labelLimit: 1000, minExtent: 50, labelFlush: false },
     },
     ...(multi ? { color: { field: 'group', type: 'nominal', title: null, scale: { domain: Object.keys(groupColors), range: Object.values(groupColors) }, legend: { orient: 'top', direction: 'horizontal', title: null } } } : {}),
   };
@@ -158,7 +158,7 @@ function createChart(setKey, chart, defaults, rows) {
     note.hidden = !small.textContent;
     if (embedded) embedded.finalize();
     try {
-      embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height, defaults.groupColors || {}), { actions: false, renderer: 'svg' });
+      embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height, defaults.groupColors || {}), { actions: true, renderer: 'svg' });
     } catch (e) {
       body.textContent = 'This chart could not be displayed.';
       console.error(setKey, c.id, e);
