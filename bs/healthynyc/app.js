@@ -104,7 +104,7 @@ function buildSpec(chart, rows, height, groupColors = {}) {
       data: { values: [{ target: referenceLineValue }] },
       mark: { type: 'rule', color: '#555', strokeDash: [6, 4], strokeWidth: 2 },
       encoding: {
-        x: { datum: 2015, type: 'quantitative' },
+        x: { datum: 2021, type: 'quantitative' },
         x2: { datum: 2030 },
         y: { field: 'target', type: 'quantitative' },
         tooltip: [{ field: 'target', type: 'quantitative', title: chart.referenceLine.label || 'Target', format: ',.1~f' }],
