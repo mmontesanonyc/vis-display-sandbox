@@ -1,0 +1,281 @@
+{
+  "_help": "Edit titles, subtitles and notes here. Each key under 'sets' matches a data-chart-set attribute in index.html. Chart fields: id, type (line|bar), title, subtitle, note (omit to use defaults.note; '' for none), alt (accessible description), indicator (set-level default; override per chart), units, groups, year (bar only). A chart with a 'views' array gets toggle buttons; each view has a 'label' and can override title, subtitle, note, alt, groups, units, type or year.",
+  "defaults": {
+    "note": "Source: NYC Health Department. 2024 data are provisional and subject to change.",
+    "height": 300,
+    "dataUrl": "healthynyc-data-long.csv"
+  },
+  "sets": {
+    "life-expectancy": {
+      "indicator": "Life expectancy",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "units": "years",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "Life expectancy at birth, 2015–2024",
+              "subtitle": "Years, all New Yorkers",
+              "groups": [
+                "Overall"
+              ],
+              "alt": "Line chart of citywide life expectancy at birth, 2015 to 2024. It fell sharply in 2020 and reached 83.2 years in 2024."
+            },
+            {
+              "label": "By race/ethnicity",
+              "title": "Life expectancy at birth by race/ethnicity, 2015–2023",
+              "subtitle": "Years",
+              "groups": [
+                "Asian and Pacific Islander",
+                "Black",
+                "Hispanic",
+                "White"
+              ],
+              "alt": "Line chart of life expectancy at birth by race and ethnicity, 2015 to 2023."
+            }
+          ]
+        }
+      ]
+    },
+    "cardiometabolic": {
+      "indicator": "Cardiometabolic",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "Cardiovascular disease and diabetes deaths, 2015–2024",
+              "subtitle": "Number of deaths per year, all New Yorkers",
+              "units": "Deaths",
+              "groups": [
+                "Overall"
+              ],
+              "alt": "Line chart of annual cardiovascular disease and diabetes deaths in New York City, 2015 to 2024."
+            },
+            {
+              "label": "By race/ethnicity",
+              "title": "Cardiovascular disease and diabetes death rate by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander",
+                "Black",
+                "Hispanic",
+                "White"
+              ],
+              "alt": "Line chart of cardiovascular disease and diabetes death rates by race and ethnicity, 2015 to 2024."
+            }
+          ]
+        }
+      ]
+    },
+    "cancers": {
+      "indicator": "Screenable cancers",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "Screenable cancer deaths, 2015–2024",
+              "subtitle": "Number of deaths per year, by sex",
+              "units": "Deaths",
+              "groups": [
+                "Overall",
+                "Female",
+                "Male"
+              ],
+              "alt": "Line chart of annual screenable cancer deaths overall and by sex, 2015 to 2024."
+            },
+            {
+              "label": "Females by race/ethnicity",
+              "title": "Screenable cancer death rate, females, by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander female",
+                "Black female",
+                "Hispanic female",
+                "White female"
+              ],
+              "alt": "Line chart of screenable cancer death rates among females by race and ethnicity, 2015 to 2024."
+            },
+            {
+              "label": "Males by race/ethnicity",
+              "title": "Screenable cancer death rate, males, by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander male",
+                "Black male",
+                "Hispanic male",
+                "White male"
+              ],
+              "alt": "Line chart of screenable cancer death rates among males by race and ethnicity, 2015 to 2024."
+            }
+          ]
+        }
+      ]
+    },
+    "overdose": {
+      "indicator": "Drug-related deaths",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "Drug overdose deaths, 2015–2024",
+              "subtitle": "Number of deaths per year, all New Yorkers",
+              "units": "Deaths",
+              "groups": [
+                "Overall"
+              ],
+              "alt": "Line chart of annual drug overdose deaths in New York City, 2015 to 2024."
+            },
+            {
+              "label": "By race/ethnicity",
+              "title": "Drug overdose death rate by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander",
+                "Black",
+                "Hispanic",
+                "White"
+              ],
+              "alt": "Line chart of drug overdose death rates by race and ethnicity, 2015 to 2024."
+            }
+          ]
+        }
+      ]
+    },
+    "suicide": {
+      "indicator": "Suicides",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "Suicide deaths, 2015–2024",
+              "subtitle": "Number of deaths per year, all New Yorkers",
+              "units": "Deaths",
+              "groups": [
+                "Overall"
+              ],
+              "alt": "Line chart of annual suicide deaths in New York City, 2015 to 2024."
+            },
+            {
+              "label": "By race/ethnicity",
+              "title": "Suicide death rate by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander",
+                "Black",
+                "Hispanic",
+                "White"
+              ],
+              "alt": "Line chart of suicide death rates by race and ethnicity, 2015 to 2024."
+            }
+          ]
+        }
+      ]
+    },
+    "covid": {
+      "indicator": "COVID-19",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "COVID-19 deaths, 2015–2024",
+              "subtitle": "Number of deaths per year, all New Yorkers",
+              "units": "Deaths",
+              "groups": [
+                "Overall"
+              ],
+              "alt": "Line chart of annual covid-19 deaths in New York City, 2015 to 2024."
+            },
+            {
+              "label": "By race/ethnicity",
+              "title": "COVID-19 death rate by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander",
+                "Black",
+                "Hispanic",
+                "White"
+              ],
+              "alt": "Line chart of covid-19 death rates by race and ethnicity, 2015 to 2024."
+            }
+          ]
+        }
+      ]
+    },
+    "homicide": {
+      "indicator": "Homicide",
+      "charts": [
+        {
+          "id": "trend",
+          "type": "line",
+          "views": [
+            {
+              "label": "Overall",
+              "title": "Homicide deaths, 2015–2024",
+              "subtitle": "Number of deaths per year, all New Yorkers",
+              "units": "Deaths",
+              "groups": [
+                "Overall"
+              ],
+              "alt": "Line chart of annual homicide deaths in New York City, 2015 to 2024."
+            },
+            {
+              "label": "By race/ethnicity",
+              "title": "Homicide death rate by race/ethnicity",
+              "subtitle": "Deaths per 100,000 people",
+              "units": "deaths per 100,000 people",
+              "groups": [
+                "Asian and Pacific Islander",
+                "Black",
+                "Hispanic",
+                "White"
+              ],
+              "alt": "Line chart of homicide death rates by race and ethnicity, 2015 to 2024.",
+              "note": "* Rates are not shown where the number of deaths is too small to report reliably."
+            }
+          ]
+        }
+      ]
+    },
+    "maternal": {
+      "indicator": "Pregnancy-associated mortality",
+      "charts": [
+        {
+          "type": "line",
+          "title": "Pregnancy-associated mortality, 2015–2021",
+          "subtitle": "Deaths per 100,000 live births",
+          "units": "deaths per 100,000 live births",
+          "groups": [
+            "Overall",
+            "Black"
+          ],
+          "alt": "Line chart of pregnancy-associated mortality overall and among Black women, 2015 to 2021.",
+          "note": "Data after 2021 are not yet available.",
+          "id": "trend"
+        }
+      ]
+    }
+  }
+}
