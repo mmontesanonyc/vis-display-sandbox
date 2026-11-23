@@ -7,7 +7,7 @@ const toNumber = (v) => {
   return Number.isFinite(n) ? n : null; // blank or "*" (suppressed) -> null
 };
 
-function buildSpec(chart, rows, height, groupColors = {}) {
+function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
   const data = rows
     .filter((r) => r.Indicator === chart.indicator && r.Units === chart.units &&
                    (!chart.groups || chart.groups.includes(r.Group)))
@@ -20,9 +20,28 @@ function buildSpec(chart, rows, height, groupColors = {}) {
     height,
     autosize: { type: 'fit-x', contains: 'padding' },
     padding: { left: 0, right: 8, top: 8, bottom: 8 },
-    config: { font: 'inherit', axis: { labelFontSize: 12, titleFontSize: 12 }, view: { stroke: null }, legend: { orient: 'top', direction: 'horizontal', title: null } },
+    // Legend removed: multi-series line charts are labeled directly at line ends.
+    config: { font: 'inherit', axis: { labelFontSize: 12, titleFontSize: 12 }, view: { stroke: null } },
   };
   const multi = new Set(data.map((d) => d.group)).size > 1;
+
+  // Direct-label placement: "labelPosition" is "end" (default) or "start",
+  // set on a chart or view in charts.config.json, or in "defaults" for all charts.
+  const labelPosition = [chart.labelPosition, defaults.labelPosition]
+    .find((v) => v === 'start' || v === 'end') ?? 'end';
+  const labelAtStart = multi && labelPosition === 'start';
+
+  // Reserve room beside the plot for the labels: on the right for "end",
+  // on the left for "start". With autosize 'fit-x' + contains 'padding',
+  // the plot area shrinks to fit this padding.
+  // Manual override (pixels): "labelPadding" on a chart or view, or in
+  // "defaults". Otherwise it is estimated from the longest group name.
+  if (multi) {
+    const manual = [chart.labelPadding, defaults.labelPadding].find(Number.isFinite);
+    const longest = Math.max(...data.map((d) => String(d.group).length));
+    const auto = Math.min(220, longest * 7 + 16);
+    base.padding = { ...base.padding, [labelAtStart ? 'left' : 'right']: manual ?? auto };
+  }
 
   // Reference lines can be fixed values or targets calculated from a
   // specified baseline year/group (for example, a percent reduction from 2021).
@@ -68,9 +87,29 @@ function buildSpec(chart, rows, height, groupColors = {}) {
       type: 'quantitative',
       title: null,
       scale: { zero: false, domainMin: yDomainMin },
-      axis: { tickCount: 4, title: null, grid: true, labelLimit: 1000, minExtent: 50, labelFlush: false },
+      axis: { tickCount: 4, title: null, grid: true, labelLimit: 1000, minExtent: 50, labelFlush: false,
+              // Start labels occupy the left side, so the y axis moves to the right.
+             orient: 'right' },
     },
-    ...(multi ? { color: { field: 'group', type: 'nominal', title: null, scale: { domain: Object.keys(groupColors), range: Object.values(groupColors) }, legend: { orient: 'top', direction: 'horizontal', title: null } } } : {}),
+    ...(multi ? {
+      color: {
+        field: 'group',
+        type: 'nominal',
+        title: null,
+        // Use the groups present in this view. Sex-specific cancer groups
+        // inherit the color of their race/ethnicity (e.g. "Black female"
+        // uses the same color as "Black").
+        scale: {
+          domain: [...new Set(data.map((d) => d.group))],
+          range: [...new Set(data.map((d) => d.group))].map((group) =>
+            groupColors[group] ||
+            groupColors[group.replace(/ (female|male)$/i, '')] ||
+            '#777777'
+          ),
+        },
+        legend: null,
+      },
+    } : {}),
   };
   const layers = [
       {
@@ -99,6 +138,26 @@ function buildSpec(chart, rows, height, groupColors = {}) {
         },
       },
   ];
+
+  // Direct labels at the first or last value of each line (replaces the legend).
+  if (multi) {
+    layers.push({
+      // Drop suppressed/blank values first so "first"/"last" means a real data point.
+      transform: [
+        { filter: 'isValid(datum.value)' },
+        { joinaggregate: [{ op: labelAtStart ? 'min' : 'max', field: 'year', as: 'edgeYear' }], groupby: ['group'] },
+        { filter: 'datum.year === datum.edgeYear' },
+      ],
+      mark: { type: 'text', align: labelAtStart ? 'right' : 'left', baseline: 'middle', dx: labelAtStart ? -8 : 8, fontSize: 12, fontWeight: 'bold' },
+      encoding: {
+        x: sharedEncoding.x,
+        y: sharedEncoding.y,
+        color: sharedEncoding.color,
+        text: { field: 'group', type: 'nominal' },
+      },
+    });
+  }
+
   if (referenceLineValue !== null && Number.isFinite(referenceLineValue)) {
     layers.push({
       data: { values: [{ target: referenceLineValue }] },
@@ -152,13 +211,13 @@ function createChart(setKey, chart, defaults, rows) {
     title.textContent = c.title;
     sub.textContent = c.subtitle || '';
     sub.hidden = !c.subtitle;
-    annotation.textContent = c.annotation || '';
-    annotation.hidden = !annotation.textContent;
+    // annotation.textContent = c.annotation || '';
+    // annotation.hidden = !annotation.textContent;
     small.textContent = c.note ?? defaults.note ?? '';
     note.hidden = !small.textContent;
     if (embedded) embedded.finalize();
     try {
-      embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height, defaults.groupColors || {}), { actions: true, renderer: 'svg' });
+      embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height, defaults.groupColors || {}, defaults), { actions: false, renderer: 'svg' });
     } catch (e) {
       body.textContent = 'This chart could not be displayed.';
       console.error(setKey, c.id, e);
