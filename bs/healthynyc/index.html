@@ -101,10 +101,28 @@
   }
 }
 
+
+/* Visually hidden, still available to screen readers (used for chart data tables) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* Skip link: visible only when focused */
+.skip-link { position: absolute; left: -999px; top: 0; background: #1a1a1a; color: #fff; padding: .5rem 1rem; z-index: 10; }
+.skip-link:focus { left: 0; }
   </style>
 </head>
 <body>
-<main id="main">
+<a class="skip-link" href="#main">Skip to main content</a>
+<main id="main" tabindex="-1">
 
   <h1>HealthyNYC: New York City’s Campaign for Healthier, Longer Lives</h1>
 
@@ -133,10 +151,10 @@
     <p>Our vision is to set ambitious "reach" goals to change health outcomes by targeting the major drivers of overall deaths, excess deaths, premature death and extreme racial inequities. If we achieve all the HealthyNYC goals, we can avert 7,300 deaths in NYC by 2030.</p>
     <nav aria-label="Drivers and goals">
       <p><strong>Go to</strong>:
-        <a href="#chronic">Chronic and Diet-Related Diseases</a> |
-        <a href="#mental">Mental Health</a> |
-        <a href="#covid">COVID-19</a> |
-        <a href="#homicide">Homicide</a> |
+        <a href="#chronic">Chronic and Diet-Related Diseases</a> <span aria-hidden="true">|</span>
+        <a href="#mental">Mental Health</a> <span aria-hidden="true">|</span>
+        <a href="#covid">COVID-19</a> <span aria-hidden="true">|</span>
+        <a href="#homicide">Homicide</a> <span aria-hidden="true">|</span>
         <a href="#maternal">Maternal Mortality</a></p>
     </nav>
   </section>

@@ -7,12 +7,156 @@ const toNumber = (v) => {
   return Number.isFinite(n) ? n : null; // blank or "*" (suppressed) -> null
 };
 
-function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
-  const data = rows
+// Rows for one chart (or one view of it). Keeps the raw CSV text so the
+// screen-reader table can tell "suppressed" (*) from "no data" (blank).
+function chartData(chart, rows) {
+  return rows
     .filter((r) => r.Indicator === chart.indicator && r.Units === chart.units &&
                    (!chart.groups || chart.groups.includes(r.Group)))
-    .map((r) => ({ year: Number(r.Year), group: r.Group, value: toNumber(r.Value) }));
-  const unitsTitle = chart.units === 'Deaths' ? 'Number of deaths' : chart.units;
+    .map((r) => ({ year: Number(r.Year), group: r.Group, value: toNumber(r.Value), raw: r.Value }));
+}
+
+const unitsLabel = (chart) => (chart.units === 'Deaths' ? 'Number of deaths' : chart.units);
+
+// Reference lines can be fixed values or targets calculated from a
+// specified baseline year/group (for example, a percent reduction from 2021).
+function referenceValue(chart, data) {
+  const ref = chart.referenceLine;
+  if (!ref) return null;
+  if (Number.isFinite(ref.value)) return ref.value;
+  if (Number.isFinite(ref.baselineYear) && ref.baselineGroup && Number.isFinite(ref.reduction)) {
+    const baseline = data.find((d) => d.year === ref.baselineYear &&
+                               d.group === ref.baselineGroup && d.value !== null);
+    if (baseline) return baseline.value * (1 - ref.reduction);
+  }
+  return null;
+}
+
+const formatNumber = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+// Screen-reader table with the same data the chart draws. Line charts get one
+// row per year and one column per group; bar charts get one row per group.
+function buildTable(chart, rows) {
+  const data = chartData(chart, rows);
+  const units = unitsLabel(chart);
+  const cellText = (d) => {
+    if (d && d.value !== null) return formatNumber(d.value);
+    return d && String(d.raw ?? '').trim() === '*' ? 'Not shown (too few to report reliably)' : 'No data';
+  };
+  const el = (tag, text, attrs = {}) => {
+    const node = document.createElement(tag);
+    if (text !== undefined) node.textContent = text;
+    Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
+    return node;
+  };
+
+  const table = el('table');
+  const refValue = referenceValue(chart, data);
+  const captionParts = [chart.title, chart.subtitle, `Values: ${units}.`];
+  if (Number.isFinite(refValue)) {
+    captionParts.push(`The chart's dashed reference line is the ${chart.referenceLine.label || 'target'}: ${formatNumber(refValue)}.`);
+    if (chart.referenceLine.annotation) captionParts.push(chart.referenceLine.annotation);
+  }
+  table.append(el('caption', captionParts.filter(Boolean).map((t) => String(t).trim()).join(' ')));
+
+  const thead = el('thead');
+  const headRow = el('tr');
+  const tbody = el('tbody');
+
+  if (chart.type === 'bar') {
+    const d = data.filter((r) => String(r.year) === String(chart.year))
+      .sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
+    headRow.append(el('th', 'Group', { scope: 'col' }), el('th', `${units}, ${chart.year}`, { scope: 'col' }));
+    d.forEach((r) => {
+      const tr = el('tr');
+      tr.append(el('th', r.group, { scope: 'row' }), el('td', cellText(r)));
+      tbody.append(tr);
+    });
+  } else {
+    const present = new Set(data.map((d) => d.group));
+    const groups = chart.groups ? chart.groups.filter((g) => present.has(g)) : [...present];
+    const years = [...new Set(data.map((d) => d.year))].sort((a, b) => a - b);
+    const lookup = new Map(data.map((d) => [`${d.group}|${d.year}`, d]));
+    headRow.append(el('th', 'Year', { scope: 'col' }));
+    groups.forEach((g) => headRow.append(el('th', g, { scope: 'col' })));
+    years.forEach((y) => {
+      const tr = el('tr');
+      tr.append(el('th', String(y), { scope: 'row' }));
+      groups.forEach((g) => tr.append(el('td', cellText(lookup.get(`${g}|${y}`)))));
+      tbody.append(tr);
+    });
+  }
+  thead.append(headRow);
+  table.append(thead, tbody);
+  return table;
+}
+
+function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
+  const data = chartData(chart, rows);
+  const unitsTitle = unitsLabel(chart);
+  const base = {
+    $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+    description: chart.alt || chart.title,
+    width: 'container',
+    height,
+    autosize: { type: 'fit-x', contains: 'padding' },
+    padding: { left: 0, right: 8, top: 8, bottom: 8 },
+    // Legend removed: multi-series line charts are labeled directly at line ends.
+    config: { font: 'inherit', axis: { labelFontSize: 12, titleFontSize: 12 }, view: { stroke: null } },
+  };
+  const multi = new Set(data.map((d) => d.group)).size > 1;
+
+  // Direct-label placement: "labelPosition" is "end" (default) or "start",
+  // set on a chart or view in charts.config.json, or in "defaults" for all charts.
+  const labelPosition = [chart.labelPosition, defaults.labelPosition]
+    .find((v) => v === 'start' || v === 'end') ?? 'end';
+  const labelAtStart = multi && labelPosition === 'start';
+
+  // Reserve room beside the plot for the labels: on the right for "end",
+  // on the left for "start". With autosize 'fit-x' + contains 'padding',
+  // the plot area shrinks to fit this padding.
+  // Manual override (pixels): "labelPadding" on a chart or view, or in
+  // "defaults". Otherwise it is estimated from the longest group name.
+  if (multi) {
+    const manual = [chart.labelPadding, defaults.labelPadding].find(Number.isFinite);
+    const longest = Math.max(...data.map((d) => String(d.group).length));
+    const auto = Math.min(220, longest * 7 + 16);
+    base.padding = { ...base.padding, [labelAtStart ? 'left' : 'right']: manual ?? auto };
+  }
+
+  const referenceLineValue = referenceValue(chart, data);
+
+  if (chart.type === 'bar') {
+    const d = data.filter((r) => String(r.year) === String(chart.year))
+      .sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
+    headRow.append(el('th', 'Group', { scope: 'col' }), el('th', `${units}, ${chart.year}`, { scope: 'col' }));
+    d.forEach((r) => {
+      const tr = el('tr');
+      tr.append(el('th', r.group, { scope: 'row' }), el('td', cellText(r)));
+      tbody.append(tr);
+    });
+  } else {
+    const present = new Set(data.map((d) => d.group));
+    const groups = chart.groups ? chart.groups.filter((g) => present.has(g)) : [...present];
+    const years = [...new Set(data.map((d) => d.year))].sort((a, b) => a - b);
+    const lookup = new Map(data.map((d) => [`${d.group}|${d.year}`, d]));
+    headRow.append(el('th', 'Year', { scope: 'col' }));
+    groups.forEach((g) => headRow.append(el('th', g, { scope: 'col' })));
+    years.forEach((y) => {
+      const tr = el('tr');
+      tr.append(el('th', String(y), { scope: 'row' }));
+      groups.forEach((g) => tr.append(el('td', cellText(lookup.get(`${g}|${y}`)))));
+      tbody.append(tr);
+    });
+  }
+  thead.append(headRow);
+  table.append(thead, tbody);
+  return table;
+}
+
+function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
+  const data = chartData(chart, rows);
+  const unitsTitle = unitsLabel(chart);
   const base = {
     $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
     description: chart.alt || chart.title,
@@ -154,6 +298,9 @@ function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
         y: sharedEncoding.y,
         color: sharedEncoding.color,
         text: { field: 'group', type: 'nominal' },
+        // Labels are visible by default. While a series is hovered (see
+        // activeGroup, set in createChart), only that series' label shows.
+        opacity: { condition: { test: 'activeGroup === null || datum.group === activeGroup', value: 1 }, value: 0 },
       },
     });
   }
@@ -181,7 +328,10 @@ function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
       });
     }
   }
-  return { ...base, data: { values: data }, layer: layers };
+  // activeGroup: the series currently under the pointer (null = none).
+  // Only multi-series charts have end labels, so only they need it.
+  return { ...base, ...(multi ? { params: [{ name: 'activeGroup', value: null }] } : {}),
+           data: { values: data }, layer: layers };
 }
 
 function createChart(setKey, chart, defaults, rows) {
@@ -204,7 +354,12 @@ function createChart(setKey, chart, defaults, rows) {
   note.className = 'chart-note';
   const small = document.createElement('small');
   note.append(small);
-  fig.append(cap, body, annotation, note);
+  // The visualization is hidden from assistive technology; this table
+  // (visually hidden, same data) is what screen readers get instead.
+  body.setAttribute('aria-hidden', 'true');
+  const srTable = document.createElement('div');
+  srTable.className = 'sr-only';
+  fig.append(cap, body, srTable, annotation, note);
 
   let embedded = null;
   async function show(c) {
@@ -216,9 +371,22 @@ function createChart(setKey, chart, defaults, rows) {
     small.textContent = c.note ?? defaults.note ?? '';
     note.hidden = !small.textContent;
     if (embedded) embedded.finalize();
+    srTable.replaceChildren(buildTable(c, rows));
+    body.setAttribute('aria-hidden', 'true');
     try {
       embedded = await vegaEmbed(body, buildSpec(c, rows, defaults.height, defaults.groupColors || {}, defaults), { actions: false, renderer: 'svg' });
+      // Hovering a line, a point or a label sets activeGroup, which hides the
+      // other series' labels. Leaving the mark restores all labels.
+      const view = embedded.view;
+      let hasActiveGroup = Boolean(view);
+      try { view.signal('activeGroup'); } catch { hasActiveGroup = false; } // single-series charts
+      if (hasActiveGroup) {
+        const setActive = (g) => { if (view.signal('activeGroup') !== g) view.signal('activeGroup', g).run(); };
+        view.addEventListener('pointerover', (event, item) => setActive(item?.datum?.group ?? null));
+        view.addEventListener('pointerout', () => setActive(null));
+      }
     } catch (e) {
+      body.removeAttribute('aria-hidden'); // so the error message is announced
       body.textContent = 'This chart could not be displayed.';
       console.error(setKey, c.id, e);
     }
@@ -228,7 +396,7 @@ function createChart(setKey, chart, defaults, rows) {
     const group = document.createElement('div');
     group.className = 'chart-views';
     group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', `${chart.viewsLabel || 'Chart view'}`);
+    group.setAttribute('aria-label', chart.viewsLabel || (chart.indicator ? `${chart.indicator}: chart view` : 'Chart view'));
     const buttons = chart.views.map((view, i) => {
       const b = document.createElement('button');
       b.type = 'button';
