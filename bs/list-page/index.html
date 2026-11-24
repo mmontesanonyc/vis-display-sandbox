@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Health Indicators Explorer</title>
+<title>Indicator list</title>
 <style>
-:root{--bg:#fff;--fg:#1d2733;--muted:#5b6776;--line:#e1e6ec;--pill:#eef2f6;--accent:#2c5a8a;--accent-fg:#fff;--cur:#1f7a4d;--exp:#9a6416;--heat:44,110,180}
-@media(prefers-color-scheme:dark){:root{--bg:#14181d;--fg:#e6ebf0;--muted:#9aa6b3;--line:#2a323b;--pill:#222a33;--accent:#6ea4d8;--accent-fg:#0d1217;--cur:#5fcf98;--exp:#e0a85f;--heat:90,150,220}}
+:root{--bg:#fff;--fg:#1d2733;--muted:#5b6776;--line:#e1e6ec;--strong:#5b6776;--pill:#eef2f6;--accent:#2c5a8a;--accent-fg:#fff;--cur:#1f7a4d;--exp:#9a6416;--heat:44,110,180}
+@media(prefers-color-scheme:dark){:root{--bg:#14181d;--fg:#e6ebf0;--muted:#9aa6b3;--line:#2a323b;--strong:#9aa6b3;--pill:#222a33;--accent:#6ea4d8;--accent-fg:#0d1217;--cur:#5fcf98;--exp:#e0a85f;--heat:90,150,220}}
 *{box-sizing:border-box}
 body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 h1{margin:0 0 4px;font-size:22px}
@@ -28,18 +28,17 @@ table{border-collapse:collapse;width:100%;min-width:760px}
 th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
 thead th{position:sticky;top:0;background:var(--bg);z-index:1;border-bottom:2px solid var(--line)}
 th.y,td.y{text-align:right;width:68px;font-variant-numeric:tabular-nums}
-tr.first td{border-top:2px solid var(--line)}
+tr.first td{border-top:3px solid var(--strong)}
 td.ind{font-weight:600;width:28%}
 .badge{display:inline-block;margin-top:4px;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid currentColor}
 .badge.cur{color:var(--cur)}
 .badge.exp{color:var(--exp)}
 .topic{display:block;color:var(--muted);font-weight:400;font-size:12px}
 .empty{padding:32px;text-align:center;color:var(--muted)}
-.load{margin-left:auto;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
-<h1>Health Indicators Explorer</h1>
+<h1>Indicator list</h1>
 <p class="sub">Survey indicators by year. <span id="src"></span></p>
 
 <div class="controls">
@@ -49,7 +48,6 @@ td.ind{font-weight:600;width:28%}
     <button data-s="current">Current</button>
     <button data-s="expired">Expired</button>
   </div>
-  <label class="load">Load CSV: <input type="file" id="file" accept=".csv"></label>
 </div>
 <div class="pills" id="pills"></div>
 <p class="count" id="count"></p>
@@ -158,12 +156,6 @@ document.getElementById('pills').addEventListener('click',e=>{
   const b=e.target.closest('.pill'); if(!b) return;
   state.topic=b.dataset.t; update();
 });
-document.getElementById('file').addEventListener('change',e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const rd=new FileReader();
-  rd.onload=()=>load(rd.result, 'Loaded from '+f.name+'.');
-  rd.readAsText(f);
-});
 
 // Read data.csv from the same directory as this page.
 (async()=>{
@@ -175,7 +167,7 @@ document.getElementById('file').addEventListener('change',e=>{
     document.getElementById('src').textContent = '';
     document.getElementById('count').innerHTML =
       'Could not read data.csv ('+esc(e.message)+'). Browsers block this when a page is opened directly from disk (file://). '+
-      'Serve this folder (e.g. <code>python3 -m http.server</code>, then open http://localhost:8000) or use "Load CSV" above.';
+      'Serve this folder (e.g. <code>python3 -m http.server</code>, then open http://localhost:8000).';
   }
 })();
 </script>
