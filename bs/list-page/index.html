@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health Indicators Explorer</title>
+<style>
+:root{--bg:#fff;--fg:#1d2733;--muted:#5b6776;--line:#e1e6ec;--pill:#eef2f6;--accent:#2c5a8a;--accent-fg:#fff;--cur:#1f7a4d;--exp:#9a6416;--heat:44,110,180}
+@media(prefers-color-scheme:dark){:root{--bg:#14181d;--fg:#e6ebf0;--muted:#9aa6b3;--line:#2a323b;--pill:#222a33;--accent:#6ea4d8;--accent-fg:#0d1217;--cur:#5fcf98;--exp:#e0a85f;--heat:90,150,220}}
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1{margin:0 0 4px;font-size:22px}
+.sub{color:var(--muted);margin:0 0 16px}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+input[type=search]{flex:1 1 260px;max-width:420px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--bg);color:var(--fg);padding:8px 14px;font:inherit;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-fg)}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.pill{border:0;background:var(--pill);color:var(--fg);padding:6px 12px;border-radius:999px;font:inherit;cursor:pointer}
+.pill small{color:var(--muted);margin-left:4px}
+.pill.on{background:var(--accent);color:var(--accent-fg)}
+.pill.on small{color:inherit;opacity:.8}
+.count{color:var(--muted);margin:0 0 8px}
+.wrap{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{position:sticky;top:0;background:var(--bg);z-index:1;border-bottom:2px solid var(--line)}
+th.y,td.y{text-align:right;width:68px;font-variant-numeric:tabular-nums}
+tr.first td{border-top:2px solid var(--line)}
+td.ind{font-weight:600;width:28%}
+.badge{display:inline-block;margin-top:4px;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid currentColor}
+.badge.cur{color:var(--cur)}
+.badge.exp{color:var(--exp)}
+.topic{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.empty{padding:32px;text-align:center;color:var(--muted)}
+.load{margin-left:auto;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<h1>Health Indicators Explorer</h1>
+<p class="sub">Survey indicators by year. <span id="src"></span></p>
+
+<div class="controls">
+  <input type="search" id="q" placeholder="Search indicators or responses…" aria-label="Search">
+  <div class="seg" id="status">
+    <button data-s="all" class="on">All</button>
+    <button data-s="current">Current</button>
+    <button data-s="expired">Expired</button>
+  </div>
+  <label class="load">Load CSV: <input type="file" id="file" accept=".csv"></label>
+</div>
+<div class="pills" id="pills"></div>
+<p class="count" id="count"></p>
+<div class="wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+
+<script>
+const TOPICS = {"Self-reported health status": "General Health", "Overweight and obesity": "General Health", "Difficulty performing daily activities": "General Health", "Confusion or memory loss": "General Health", "Device use (electronic medical)": "General Health", "Device use (assistive)": "General Health", "Asthma (ever)": "Chronic Conditions", "Asthma (current)": "Chronic Conditions", "Asthma - age first told": "Chronic Conditions", "COPD ever": "Chronic Conditions", "High blood pressure (ever)": "Chronic Conditions", "Blood pressure medication (ever)": "Chronic Conditions", "Blood pressure medication (current)": "Chronic Conditions", "Diabetes (ever)": "Chronic Conditions", "Diabetes Medication - insulin or pills": "Chronic Conditions", "Diabetes medication": "Chronic Conditions", "Health insurance coverage": "Healthcare Access", "Health insurance type": "Healthcare Access", "Doctor not accept insurance": "Healthcare Access", "Dental insurance": "Healthcare Access", "Saw any medical provider in past year": "Healthcare Access", "Personal doctor": "Healthcare Access", "Saw personal doctor in past year": "Healthcare Access", "Usual place for care": "Healthcare Access", "Appointment wait time": "Healthcare Access", "Dental cleaning": "Healthcare Access", "Did not get needed medical care": "Healthcare Access", "Did not get medical care due to costs": "Healthcare Access", "Did not fill prescription due to cost": "Healthcare Access", "Put off or skipped prescription due to cost": "Healthcare Access", "Breast cancer screening (mammography)": "Screening & Vaccination", "Cervical cancer screening (Pap test)": "Screening & Vaccination", "Colon cancer screening (colonoscopy)": "Screening & Vaccination", "HIV test (ever and in past year)": "Screening & Vaccination", "Influenza (flu) vaccination": "Screening & Vaccination", "Influenza (flu) vaccination - where received": "Screening & Vaccination", "Pneumonia vaccination": "Screening & Vaccination", "Hepatitis B vaccination": "Screening & Vaccination", "Hepatitis A vaccine ever": "Screening & Vaccination", "Depression (current)": "Mental Health", "Considered suicide": "Mental Health", "Did not get needed mental health care (among those with depression)": "Mental Health", "Serious psychological distress": "Mental Health", "Mental health counseling or treatment (among SPD)": "Mental Health", "Did not get needed mental health care (among SPD)": "Mental Health", "Mental health counseling or treatment (among those with depression)": "Mental Health", "Smoking status": "Tobacco", "Smoking frequency": "Tobacco", "Age began smoking": "Tobacco", "Menthol cigarettes": "Tobacco", "Place of cigarette purchase": "Tobacco", "Nicotine replacement therapy use": "Tobacco", "Smoke little cigars": "Tobacco", "Smoke an electronic cigarette, past 12 months": "Tobacco", "Second-hand smoke from outside": "Tobacco", "Lives in non-smoking building": "Tobacco", "Drinks alcohol": "Alcohol, Diet & Activity", "Heavy drinking": "Alcohol, Diet & Activity", "Binge drinking": "Alcohol, Diet & Activity", "Fruit/vegetable consumption": "Alcohol, Diet & Activity", "Water consumption": "Alcohol, Diet & Activity", "Sugary drink consumption (average)": "Alcohol, Diet & Activity", "Food insecurity": "Alcohol, Diet & Activity", "Exercise in last 30 days": "Alcohol, Diet & Activity", "Rode bicycle in past year": "Alcohol, Diet & Activity", "Sexual identity": "Sexual Health", "Number of sex partners": "Sexual Health", "Condom use at last sex": "Sexual Health", "Condom use (anal sex)": "Sexual Health", "Men who had sex with men": "Sexual Health", "Women who had sex with women": "Sexual Health", "Contraceptive use (among females)": "Sexual Health", "Contraceptive type (among females)": "Sexual Health", "Fear of intimate partner (ever)": "Violence & Safety", "Physically hurt by intimate partner (ever)": "Violence & Safety", "Provider asked about relationship conflict": "Violence & Safety", "Insulted or controlled by intimate partner (ever)": "Violence & Safety", "Unwanted sexual touch (ever)": "Violence & Safety", "Forced sex ever (2019)": "Violence & Safety", "Criminal justice system involvement - personal": "Violence & Safety", "Criminal justice system involvement - family member": "Violence & Safety", "Neighborhood safety": "Violence & Safety", "Drove motor vehicle in NYC past 30 days": "Violence & Safety", "Drove 10 MPH or more over posted speed limit": "Violence & Safety", "Read or sent message while driving": "Violence & Safety", "Delayed or unable to pay mortgage or rent": "Housing & Community", "Helpful neighbors": "Housing & Community", "Public housing, rental assistance or rent control": "Housing & Community", "Public housing or rental assistance": "Housing & Community", "Community - discuss issues": "Housing & Community", "Community - contribute to projects": "Housing & Community", "Community - clean up": "Housing & Community", "Community - trust with keys": "Housing & Community", "Community - proud of neighborhood": "Housing & Community", "Rats on street": "Housing & Community", "Personal use of pesticides inside home": "Housing & Community", "Type of pesticide used inside home": "Housing & Community", "Mold (past 12 months)": "Housing & Community", "Provide unpaid care to adult": "Housing & Community"};
+const state = {topic:'All', status:'all', q:''};
+let years = [], latest = 0, groups = [];
+
+function parseCSV(t){
+  const rows=[]; let r=[], f='', q=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(q){ if(c=='"'){ if(t[i+1]=='"'){f+='"';i++} else q=false } else f+=c }
+    else if(c=='"') q=true;
+    else if(c==','){ r.push(f); f='' }
+    else if(c=='\n'||c=='\r'){ if(c=='\r'&&t[i+1]=='\n')i++; r.push(f); f=''; if(r.some(x=>x!==''))rows.push(r); r=[] }
+    else f+=c;
+  }
+  if(f!==''||r.length){ r.push(f); rows.push(r) }
+  return rows;
+}
+
+function load(text, label){
+  const rows = parseCSV(text.trim());
+  const head = rows.shift();
+  years = head.slice(2).map(Number);
+  latest = Math.max(...years);
+  const map = new Map();
+  rows.forEach(r=>{
+    const name=r[0];
+    if(!map.has(name)) map.set(name,{name,topic:TOPICS[name]||'Other',rows:[]});
+    const vals = years.map((y,i)=>{
+      const raw=(r[i+2]||'').trim();
+      return raw===''?null:{raw, n:parseFloat(raw)};
+    });
+    map.get(name).rows.push({response:r[1], vals});
+  });
+  groups = [...map.values()].map(g=>{
+    let last=0;
+    g.rows.forEach(r=>r.vals.forEach((v,i)=>{ if(v && years[i]>last) last=years[i] }));
+    g.last=last; g.current = last===latest;
+    return g;
+  });
+  document.getElementById('src').textContent = label;
+  renderPills(); render();
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+
+function matchesFilters(g, ignoreTopic){
+  if(!ignoreTopic && state.topic!=='All' && g.topic!==state.topic) return false;
+  if(state.status==='current' && !g.current) return false;
+  if(state.status==='expired' && g.current) return false;
+  if(state.q){
+    const q=state.q.toLowerCase();
+    if(!(g.name.toLowerCase().includes(q) || g.topic.toLowerCase().includes(q) || g.rows.some(r=>r.response.toLowerCase().includes(q)))) return false;
+  }
+  return true;
+}
+
+function renderPills(){
+  const topics=[...new Set(groups.map(g=>g.topic))].sort((a,b)=>a==='Other'?1:b==='Other'?-1:a.localeCompare(b));
+  const el=document.getElementById('pills');
+  const mk=(t,n)=>`<button class="pill${state.topic===t?' on':''}" data-t="${esc(t)}">${esc(t)}<small>${n}</small></button>`;
+  el.innerHTML = mk('All', groups.filter(g=>matchesFilters(g,true)).length) +
+    topics.map(t=>mk(t, groups.filter(g=>g.topic===t && matchesFilters(g,true)).length)).join('');
+}
+
+function render(){
+  document.getElementById('thead').innerHTML =
+    '<tr><th>Indicator</th><th>Response</th>'+years.map(y=>`<th class="y">${y}</th>`).join('')+'</tr>';
+  const shown = groups.filter(g=>matchesFilters(g,false));
+  document.getElementById('count').textContent =
+    `Showing ${shown.length} of ${groups.length} indicators (current = asked in ${latest})`;
+  const body = shown.map(g=>{
+    const badge = g.current
+      ? '<span class="badge cur">Current</span>'
+      : `<span class="badge exp">Expired · last asked ${g.last}</span>`;
+    return g.rows.map((r,i)=>{
+      const first = i===0;
+      const cells = r.vals.map(v=>{
+        if(!v) return '<td class="y"></td>';
+        const a = isNaN(v.n)?0:(0.08+0.55*v.n/100).toFixed(2);
+        return `<td class="y" style="background:rgba(var(--heat),${a})">${esc(v.raw)}</td>`;
+      }).join('');
+      const ind = first ? `<td class="ind" rowspan="${g.rows.length}">${esc(g.name)}<span class="topic">${esc(g.topic)}</span>${badge}</td>` : '';
+      return `<tr class="${first?'first':''}">${ind}<td>${esc(r.response)}</td>${cells}</tr>`;
+    }).join('');
+  }).join('');
+  document.getElementById('tbody').innerHTML = body ||
+    `<tr><td class="empty" colspan="${years.length+2}">No indicators match your filters.</td></tr>`;
+}
+
+function update(){ renderPills(); render(); }
+
+document.getElementById('q').addEventListener('input',e=>{ state.q=e.target.value.trim(); update(); });
+document.getElementById('status').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.status=b.dataset.s;
+  document.querySelectorAll('#status button').forEach(x=>x.classList.toggle('on',x===b));
+  update();
+});
+document.getElementById('pills').addEventListener('click',e=>{
+  const b=e.target.closest('.pill'); if(!b) return;
+  state.topic=b.dataset.t; update();
+});
+document.getElementById('file').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>load(rd.result, 'Loaded from '+f.name+'.');
+  rd.readAsText(f);
+});
+
+// Read data.csv from the same directory as this page.
+(async()=>{
+  try{
+    const res = await fetch('data.csv',{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    load(await res.text(), 'Loaded from data.csv.');
+  }catch(e){
+    document.getElementById('src').textContent = '';
+    document.getElementById('count').innerHTML =
+      'Could not read data.csv ('+esc(e.message)+'). Browsers block this when a page is opened directly from disk (file://). '+
+      'Serve this folder (e.g. <code>python3 -m http.server</code>, then open http://localhost:8000) or use "Load CSV" above.';
+  }
+})();
+</script>
+</body>
+</html>
