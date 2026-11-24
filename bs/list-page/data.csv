@@ -1,0 +1,247 @@
+Indicator,Response,2015,2016,2017,2018,2019,2020
+Self-reported health status,Excellent,17%,17%,18%,17%,17%,21%
+Self-reported health status,Very good,28%,28%,28%,28%,30%,29%
+Self-reported health status,Good,33%,33%,31%,32%,30%,30%
+Self-reported health status,Fair or Poor,23%,22%,23%,23%,23%,19%
+Asthma (ever),Yes,,,13%,14%,14%,14%
+Asthma (ever),No,,,87%,86%,86%,86%
+Asthma (current),Yes,,,4%,4%,5%,4%
+Asthma (current),No,,,96%,96%,95%,96%
+Asthma - age first told,Age less than 18,,,,,,61%
+Asthma - age first told,Age 18 to 40,,,,,,25%
+Asthma - age first told,Age greater than 40,,,,,,15%
+COPD ever,Told had COPD,,,,,4%,
+COPD ever,Never told had COPD,,,,,96%,
+High blood pressure (ever),Yes,29%,28%,28%,27%,28%,26%
+High blood pressure (ever),No,71%,72%,72%,73%,72%,74%
+Blood pressure medication (ever),Yes,73%,70%,71%,74%,70%,74%
+Blood pressure medication (ever),No,27%,30%,29%,26%,30%,26%
+Blood pressure medication (current),Yes,77%,70%,75%,75%,75%,75%
+Blood pressure medication (current),No,23%,30%,25%,25%,25%,25%
+Diabetes (ever),Yes,12%,11%,12%,11%,12%,12%
+Diabetes (ever),No,88%,89%,88%,89%,88%,88%
+Diabetes Medication - insulin or pills,Insulin only,14%,,,,,
+Diabetes Medication - insulin or pills,Diabetic pills only,47%,,,,,
+Diabetes Medication - insulin or pills,Both insulin and diabetic pills,15%,,,,,
+Diabetes Medication - insulin or pills,Neither insulin or pills,24%,,,,,
+Diabetes medication,Currently taking diabetes medication,,,,79%,,73%
+Diabetes medication,Not currently taking diabetes medication,,,,21%,,27%
+Confusion or memory loss,Increased confusion or memory loss,,,,,14%,
+Confusion or memory loss,No increased confusion or memory loss,,,,,86%,
+Overweight and obesity,Under/normal weight,43%,42%,43%,41%,42%,41%
+Overweight and obesity,Overweight,33%,34%,32%,33%,33%,34%
+Overweight and obesity,Obesity,24%,24%,25%,26%,25%,25%
+Health insurance coverage,Yes,87%,89%,88%,88%,87%,87%
+Health insurance coverage,No,13%,11%,12%,12%,13%,13%
+Health insurance type,Private,44%,46%,45%,43%,45%,45%
+Health insurance type,Medicare,15%,17%,16%,16%,15%,15%
+Health insurance type,Medicaid,26%,24%,24%,25%,23%,23%
+Health insurance type,Others,2%,3%,3%,4%,4%,4%
+Health insurance type,Uninsured,13%,11%,12%,12%,13%,13%
+Doctor not accept insurance,Yes,16%,19%,,,,
+Doctor not accept insurance,No,84%,81%,,,,
+Dental insurance,Yes,68%,,,,,
+Dental insurance,No,32%,,,,,
+Saw any medical provider in past year,Yes,,,,,86%,
+Saw any medical provider in past year,No,,,,,14%,
+Personal doctor,Yes,84%,83%,85%,84%,84%,71%
+Personal doctor,No,16%,17%,15%,16%,16%,29%
+Saw personal doctor in past year,Yes,86%,,,,,
+Saw personal doctor in past year,No,14%,,,,,
+Usual place for care,Private office,,,,,,59%
+Usual place for care,Community health center,,,,,,9%
+Usual place for care,Hospital outpatient clinic,,,,,,16%
+Usual place for care,Urgent care center,,,,,,7%
+Usual place for care,Hospital emergency room,,,,,,6%
+Usual place for care,Retail clinic or some other place,,,,,,3%
+Appointment wait time,Same or next day,65%,,,,,
+Appointment wait time,In 2-3 days,17%,,,,,
+Appointment wait time,4 or more days,18%,,,,,
+Dental cleaning,Within past 1 year,,,,,62%,
+Dental cleaning,More than 1 year but less than 2,,,,,16%,
+Dental cleaning,2 or more years ago,,,,,20%,
+Dental cleaning,Never,,,,,3%,
+Did not get needed medical care,Yes,10%,11%,10%,11%,12%,12%
+Did not get needed medical care,No,90%,89%,90%,89%,88%,88%
+Did not get medical care due to costs,Yes,9%,10%,,,,
+Did not get medical care due to costs,No,91%,90%,,,,
+Device use (electronic medical),Used electronic medical device,,,,,6%,
+Device use (electronic medical),Did not use electronic medical device,,,,,94%,
+Device use (assistive),Used assistive device,,,,,10%,9%
+Device use (assistive),Did not assistive device,,,,,90%,91%
+Did not fill prescription due to cost,Yes,14%,15%,,,,
+Did not fill prescription due to cost,No,86%,85%,,,,
+Put off or skipped prescription due to cost,Skipped prescription,,,,,,13%
+Put off or skipped prescription due to cost,Did not skip prescription,,,,,,87%
+Breast cancer screening (mammography),"Yes, in past 2 years",,,,,70%,
+Breast cancer screening (mammography),"No, not in past 2 years",,,,,30%,
+Cervical cancer screening (Pap test),"Yes, in past 3 years",,,85%,,,
+Cervical cancer screening (Pap test),"No, not in past 3 years",,,15%,,,
+Colon cancer screening (colonoscopy),"Yes, in past 10 years",70%,68%,70%,69%,71%,72%
+Colon cancer screening (colonoscopy),"No, not in past 10 years",30%,32%,30%,31%,29%,28%
+HIV test (ever and in past year),Tested in the past 12 months,33%,34%,34%,34%,34%,30%
+HIV test (ever and in past year),Tested more than 12 months ago,30%,30%,31%,32%,31%,33%
+HIV test (ever and in past year),Never tested,37%,35%,34%,34%,35%,37%
+Depression (current),Yes,,9%,9%,10%,,
+Depression (current),No,,91%,91%,90%,,
+Considered suicide,Contemplated suicide,,,,,,2%
+Considered suicide,Did not contemplate suicide,,,,,,98%
+Did not get needed mental health care (among those with depression),Yes,,13%,18%,20%,,
+Did not get needed mental health care (among those with depression),No,,87%,82%,80%,,
+Serious psychological distress,Yes,5%,,,,5%,6%
+Serious psychological distress,No,95%,,,,95%,94%
+Mental health counseling or treatment (among SPD),Yes,46%,,,,58%,55%
+Mental health counseling or treatment (among SPD),No,54%,,,,42%,45%
+Did not get needed mental health care (among SPD),Yes,23%,,,,24%,28%
+Did not get needed mental health care (among SPD),No,77%,,,,76%,72%
+Mental health counseling or treatment (among those with depression),Yes,,38%,43%,44%,,
+Mental health counseling or treatment (among those with depression),No,,62%,57%,56%,,
+Provide unpaid care to adult,Provided care,,,,,26%,
+Provide unpaid care to adult,Did not provide care,,,,,74%,
+Difficulty performing daily activities,Difficulty with activities,,,,,15%,13%
+Difficulty performing daily activities,No difficulty with activities,,,,,85%,87%
+Smoking status,Never,67%,68%,67%,68%,69%,68%
+Smoking status,Current,14%,13%,13%,13%,12%,11%
+Smoking status,Former,18%,19%,19%,19%,19%,21%
+Smoking frequency,Smokes some days,6%,5%,5%,5%,5%,5%
+Smoking frequency,Smokes lightly every day,5%,5%,5%,5%,5%,5%
+Smoking frequency,Smokes heavily every day,3%,3%,3%,2%,2%,2%
+Smoking frequency,Does not smoke,86%,87%,87%,87%,88%,89%
+Age began smoking,12 years and under,4%,7%,,5%,,
+Age began smoking,13-17 years,45%,45%,,49%,,
+Age began smoking,18-20 years,29%,29%,,30%,,
+Age began smoking,21 years and over,22%,19%,,17%,,
+Menthol cigarettes,Menthol cigarettes,48%,,,50%,52%,53%
+Menthol cigarettes,Non-menthol cigarettes,52%,,,50%,48%,47%
+Place of cigarette purchase,Purchased in NYC store,76%,,,,,
+Place of cigarette purchase,Not purchased in NYC store,24%,,,,,
+Place of cigarette purchase,Undetermined place of purchase,1%*,,,,,
+Nicotine replacement therapy use,Yes,,20%,,,,
+Nicotine replacement therapy use,No,,80%,,,,
+Smoke little cigars,Yes,,3%,,,,
+Smoke little cigars,No,,97%,,,,
+"Smoke an electronic cigarette, past 12 months",Yes,,7%,7%,,10%,
+"Smoke an electronic cigarette, past 12 months",No,,93%,93%,,90%,
+Second-hand smoke from outside,Everyday,,,11%,13%,,
+Second-hand smoke from outside,Sometimes,,,27%,29%,,
+Second-hand smoke from outside,Never,,,62%,58%,,
+Lives in non-smoking building,Yes,,,,44%,,
+Lives in non-smoking building,No,,,,44%,,
+Lives in non-smoking building,Don't know,,,,12%,,
+Drinks alcohol,Yes,57%,56%,56%,55%,57%,54%
+Drinks alcohol,No,43%,44%,44%,45%,43%,46%
+Heavy drinking,Yes,5%,5%,6%,5%,6%,6%
+Heavy drinking,No,95%,95%,94%,95%,94%,94%
+Binge drinking,Yes,17%,17%,17%,18%,19%,17%
+Binge drinking,No,83%,83%,83%,82%,81%,83%
+Fruit/vegetable consumption,None,12%,13%,12%,11%,10%,11%
+Fruit/vegetable consumption,1-4 servings,77%,77%,75%,76%,75%,80%
+Fruit/vegetable consumption,>5 servings,11%,10%,13%,12%,14%,9%
+Water consumption,None,,,2%,,,
+Water consumption,1-4 glasses,,,47%,,,
+Water consumption,5-7 glasses,,,28%,,,
+Water consumption,8+ glasses,,,22%,,,
+Sugary drink consumption (average),None,45%,45%,45%,45%,44%,42%
+Sugary drink consumption (average),Less than one,31%,33%,32%,32%,34%,36%
+Sugary drink consumption (average),One or more,24%,23%,23%,24%,22%,22%
+Food insecurity,Had enough food of the kinds wanted,,,68%,69%,,
+Food insecurity,"Had enough food, not always kinds wanted",,,22%,21%,,
+Food insecurity,Sometimes/often did not have enough food,,,10%,9%,,
+Influenza (flu) vaccination,Yes,44%,43%,43%,47%,48%,50%
+Influenza (flu) vaccination,No,56%,57%,57%,53%,52%,50%
+Influenza (flu) vaccination - where received,Doctor office,,46%,,,,40%
+Influenza (flu) vaccination - where received,"Clinic, hospital or ER",,20%,,,,25%
+Influenza (flu) vaccination - where received,Pharmacy or store,,18%,,,,21%
+Influenza (flu) vaccination - where received,Workplace,,13%,,,,12%
+Influenza (flu) vaccination - where received,Other location,,4%,,,,2%
+Pneumonia vaccination,Yes,,43%,,,,
+Pneumonia vaccination,No,,57%,,,,
+Hepatitis B vaccination,Yes,,,,55%,,
+Hepatitis B vaccination,No,,,,45%,,
+Hepatitis A vaccine ever,Received Hep A vaccine,,,,,40%,
+Hepatitis A vaccine ever,Did not receive Hep A vaccine,,,,,42%,
+Hepatitis A vaccine ever,Did not know if received Hep A vaccine,,,,,18%,
+Exercise in last 30 days,Yes,75%,72%,74%,73%,75%,71%
+Exercise in last 30 days,No,25%,28%,26%,27%,25%,29%
+Rode bicycle in past year,Several times a month,,,12%,12%,12%,12%
+Rode bicycle in past year,At least once a month,,,3%,4%,4%,4%
+Rode bicycle in past year,A few times a year,,,8%,8%,9%,10%
+Rode bicycle in past year,Never,,,76%,77%,75%,74%
+Sexual identity,Gay/Lesbian,3%,3%,3%,3%,4%,4%
+Sexual identity,"Straight, that is not gay",95%,94%,94%,93%,91%,91%
+Sexual identity,Bisexual,1%,2%,2%,3%,4%,3%
+Sexual identity,Something else,0%,1%,0%*,1%,2%,2%
+Number of sex partners,None,30%,30%,29%,31%,29%,30%
+Number of sex partners,One,57%,58%,57%,52%,56%,56%
+Number of sex partners,Two,5%,5%,6%,6%,5%,6%
+Number of sex partners,Three or more,8%,7%,8%,10%,9%,8%
+Condom use at last sex,Yes,31%,29%,28%,28%,26%,29%
+Condom use at last sex,No,69%,71%,72%,72%,74%,71%
+Condom use (anal sex),Yes,45%,32%,32%,37%,40%,38%
+Condom use (anal sex),No,55%,68%,68%,63%,60%,62%
+Men who had sex with men,Yes,7%,6%,6%,7%,8%,8%
+Men who had sex with men,No,93%,94%,94%,93%,92%,92%
+Women who had sex with women,Yes,3%,5%,4%,4%,6%,7%
+Women who had sex with women,No,97%,95%,96%,96%,94%,93%
+Contraceptive use (among females),Yes,,,60%,58%,60%,
+Contraceptive use (among females),No,,,40%,42%,40%,
+Contraceptive type (among females),Sterilization,,,2%*,1%*,2%*,
+Contraceptive type (among females),Long-acting (LARC),,,18%,19%,24%,
+Contraceptive type (among females),Short-acting (SHBC),,,34%,32%,29%,
+Contraceptive type (among females),Barrier,,,44%,46%,43%,
+Contraceptive type (among females),Natural family planning,,,2%*,1%*,1%*,
+Criminal justice system involvement - personal,Involved,,,8%,9%,,
+Criminal justice system involvement - personal,Not involved,,,92%,91%,,
+Criminal justice system involvement - family member,Family member involved,,,12%,14%,,
+Criminal justice system involvement - family member,Family member not involved,,,88%,86%,,
+Delayed or unable to pay mortgage or rent,Delayed or unable to pay,,,,12%,11%,15%
+Delayed or unable to pay mortgage or rent,Able to pay,,,,88%,89%,85%
+Fear of intimate partner (ever),Yes,4%,,,,,
+Fear of intimate partner (ever),No,96%,,,,,
+Physically hurt by intimate partner (ever),Yes,,8%,,10%,,8%
+Physically hurt by intimate partner (ever),No,,92%,,90%,,92%
+Provider asked about relationship conflict,Yes,,,,,12%,
+Provider asked about relationship conflict,No,,,,,88%,
+Insulted or controlled by intimate partner (ever),"Yes, insulted, called names or controlled by partner",,,,17%,,14%
+Insulted or controlled by intimate partner (ever),"Never insulted, called names or controlled by partner",,,,83%,,86%
+Unwanted sexual touch (ever),Experienced unwanted touch,,,,,15%,
+Unwanted sexual touch (ever),Did not experience unwanted touch,,,,,85%,
+Forced sex ever (2019),Experienced forced sex,,,,,7%,
+Forced sex ever (2019),Did not experience forced sex,,,,,93%,
+Neighborhood safety,Very/somewhat safe,,86%,,,,
+Neighborhood safety,Not very/not at all safe,,14%,,,,
+Helpful neighbors,strongly/somewhat agree,,,,76%,77%,
+Helpful neighbors,neither agree nor disagree,,,,10%,11%,
+Helpful neighbors,strongly/somewhat disagree,,,,13%,12%,
+"Public housing, rental assistance or rent control",Public housing resident,,,13%,13%,12%,11%
+"Public housing, rental assistance or rent control",Receive rental assistance,,,9%,10%,9%,9%
+"Public housing, rental assistance or rent control",Rent-controlled or -stabilized,,,20%,20%,19%,24%
+"Public housing, rental assistance or rent control",No housing assistance,,,58%,56%,60%,56%
+Public housing or rental assistance,Public housing resident,9%,,,,,
+Public housing or rental assistance,Receive rental assistance,8%,,,,,
+Public housing or rental assistance,Neither public housing or rental assistance,83%,,,,,
+Community - discuss issues,Strongly/somewhat agree,,,,,,40%
+Community - discuss issues,Strongly/somewhat disagree,,,,,,60%
+Community - contribute to projects,Strongly/somewhat agree,,,,,,44%
+Community - contribute to projects,Strongly/somewhat disagree,,,,,,56%
+Community - clean up,Strongly/somewhat agree,,,,,,66%
+Community - clean up,Strongly/somewhat disagree,,,,,,34%
+Community - trust with keys,Strongly/somewhat agree,,,,,,62%
+Community - trust with keys,Strongly/somewhat disagree,,,,,,38%
+Community - proud of neighborhood,Strongly/somewhat agree,,,,,,90%
+Community - proud of neighborhood,Strongly/somewhat disagree,,,,,,10%
+Rats on street,Yes,,,,,,34%
+Rats on street,No,,,,,,66%
+Personal use of pesticides inside home,Yes,36%,,,,,
+Personal use of pesticides inside home,No,64%,,,,,
+Type of pesticide used inside home,"Only safer methods (bait, gel, boric acid)",26%,,,,,
+Type of pesticide used inside home,Spray/bomb/fogger only,65%,,,,,
+Type of pesticide used inside home,Any use of Tempo or Chinese chalk,9%,,,,,
+Mold (past 12 months),Visible mold,,,,,12%,
+Mold (past 12 months),No visible mold,,,,,88%,
+Drove motor vehicle in NYC past 30 days,Yes,41%,40%,,,,
+Drove motor vehicle in NYC past 30 days,No,59%,60%,,,,
+Drove 10 MPH or more over posted speed limit,Yes,64%,62%,,,,
+Drove 10 MPH or more over posted speed limit,No,36%,38%,,,,
+Read or sent message while driving,Yes,19%,,,,,
+Read or sent message while driving,No,81%,,,,,
