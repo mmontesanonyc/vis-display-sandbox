@@ -255,10 +255,14 @@ function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
       },
     } : {}),
   };
+
+  // Dim series other than the hovered one (see activeGroup in createChart).
+  const dim = multi ? { opacity: { condition: { test: 'activeGroup === null || datum.group === activeGroup', value: 1 }, value: 0.25 } } : {};
+  
   const layers = [
       {
         mark: { type: 'line', strokeWidth: 2 },
-        encoding: sharedEncoding,
+        encoding: { ...sharedEncoding, ...dim },
       },
       {
         // Keep the hover selection scoped to this point layer. Declaring it
@@ -270,6 +274,7 @@ function buildSpec(chart, rows, height, groupColors = {}, defaults = {}) {
         mark: { type: 'point', filled: true },
         encoding: {
           ...sharedEncoding,
+          ...dim,
           size: {
             condition: { param: 'pointHover', value: 130 },
             value: 45,
