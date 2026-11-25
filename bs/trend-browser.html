@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asthma (ever): NYC adults, 2002–2020</title>
+<style>
+:root{--bg:#ffffff;--fg:#1c2430;--muted:#5d6877;--grid:#e3e7ec;--blue:#0b5fff;--gray:#9aa3afab;--hl:#e8590c;--ctl:#f3f5f8;--border:#cfd5dd;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181f;--fg:#e8ecf1;--muted:#a0a9b6;--grid:#2a313c;--blue:#5b9bff;--gray:#6b7480;--hl:#ff9248;--ctl:#1e242d;--border:#3a4350}}
+:root[data-theme="dark"]{--bg:#14181f;--fg:#e8ecf1;--muted:#a0a9b6;--grid:#2a313c;--blue:#5b9bff;--gray:#6b7480;--hl:#ff9248;--ctl:#1e242d;--border:#3a4350}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px 40px}
+h1{font-size:1.35rem;margin:0 0 4px;line-height:1.25}
+.sub{margin:0 0 18px;color:var(--muted);font-size:.92rem}
+.controls{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;background:var(--ctl);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-weight:600}
+.switch input{position:absolute;opacity:0}
+.track{width:42px;height:24px;border-radius:12px;background:var(--gray);position:relative;transition:background .15s;flex:none}
+.track::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch input:checked + .track{background:var(--blue)}
+.switch input:checked + .track::after{transform:translateX(18px)}
+.switch input:focus-visible + .track{outline:2px solid var(--blue);outline-offset:2px}
+.field{display:flex;align-items:center;gap:8px}
+.field label{font-weight:600}
+select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:210px;max-width:100%}
+select:disabled{opacity:.5;cursor:not-allowed}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9rem;margin:0 0 6px;min-height:1.5em}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{display:inline-block;width:22px;height:0;border-top-width:4px;border-top-style:solid;border-radius:2px}
+#chart{width:100%;overflow-x:auto}
+#chart .vega-embed{width:100%}
+.note{color:var(--muted);font-size:.82rem;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+ <h1>Asthma (ever) among NYC adults</h1>
+ <p class="sub">Share of adults who have ever been told by a health professional that they had asthma, 2002–2020</p>
+
+ <div class="controls">
+  <label class="switch"><input type="checkbox" id="toggle"><span class="track"></span><span>Show groups</span></label>
+  <div class="field">
+   <label for="group">Highlight</label>
+   <select id="group" disabled>
+    <option value="">Choose a group…</option>
+   </select>
+  </div>
+ </div>
+
+ <div class="key" id="key" aria-live="polite"></div>
+ <div id="chart" role="img" aria-label="Line chart of the citywide age-adjusted prevalence of ever having asthma by year"></div>
+ <p class="note">Citywide, borough, race/ethnicity and sex lines are age-adjusted estimates. Age-group lines are unadjusted (crude) estimates. No survey data for 2005, 2015 and 2016, so lines connect across those gaps. Hover a point for the estimate and 95% confidence interval.</p>
+ <hr>
+ <strong>Goals of this display:</strong> 
+ <ul>
+    <li>One option to show variability behind citywide trend - this could be an alternate display to the jitter display from 3iap</li>
+    <li>Only compare a single group to citywide, not group-to-group</li>
+    <li>Give a possibility to highlight group-to-whole differences if it's a meaningful difference. </li>
+ </ul> 
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0/build/vega-lite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0/build/vega-embed.min.js"></script>
+<script>
+// [year, dimension, group, estimate %, lower CI, upper CI, interpret-with-caution flag, crude flag]
+const RAW = [[2002,"Citywide","Citywide",12.1,11.3,12.9,0,0],[2002,"Age group","18-24 Years",15.6,13.0,18.6,0,1],[2002,"Age group","25-44 Years",10.8,9.7,12.0,0,1],[2002,"Age group","45-64 Years",13.3,11.8,15.0,0,1],[2002,"Age group","65 and over",10.2,8.7,12.0,0,1],[2002,"Borough","Bronx",14.4,12.5,16.6,0,0],[2002,"Borough","Brooklyn",10.3,9.1,11.5,0,0],[2002,"Borough","Manhattan",12.6,11.0,14.4,0,0],[2002,"Borough","Queens",11.6,10.0,13.5,0,0],[2002,"Borough","Staten Island",15.7,12.3,19.7,0,0],[2002,"Race/ethnicity","Asian/Pacific Islander",6.9,4.5,10.3,0,0],[2002,"Race/ethnicity","Black",12.9,11.3,14.6,0,0],[2002,"Race/ethnicity","Latino",16.5,14.8,18.4,0,0],[2002,"Race/ethnicity","Other",15.9,9.9,24.6,0,0],[2002,"Race/ethnicity","White",10.5,9.3,11.8,0,0],[2002,"Sex","Female",14.2,13.1,15.4,0,0],[2002,"Sex","Male",9.6,8.6,10.8,0,0],[2003,"Citywide","Citywide",12.0,11.2,12.8,0,0],[2003,"Age group","18-24 Years",12.0,9.6,14.9,0,1],[2003,"Age group","25-44 Years",12.0,10.9,13.2,0,1],[2003,"Age group","45-64 Years",12.6,11.3,14.1,0,1],[2003,"Age group","65 and over",10.7,9.0,12.7,0,1],[2003,"Borough","Bronx",15.3,13.3,17.6,0,0],[2003,"Borough","Brooklyn",11.6,10.4,12.9,0,0],[2003,"Borough","Manhattan",13.9,12.0,16.0,0,0],[2003,"Borough","Queens",9.3,8.1,10.7,0,0],[2003,"Borough","Staten Island",11.2,8.5,14.5,0,0],[2003,"Race/ethnicity","Asian/Pacific Islander",3.7,2.5,5.5,0,0],[2003,"Race/ethnicity","Black",12.4,10.9,14.0,0,0],[2003,"Race/ethnicity","Latino",16.5,14.7,18.5,0,0],[2003,"Race/ethnicity","Other",13.2,9.1,18.7,0,0],[2003,"Race/ethnicity","White",11.4,10.1,12.9,0,0],[2003,"Sex","Female",14.2,13.1,15.4,0,0],[2003,"Sex","Male",9.4,8.4,10.5,0,0],[2004,"Citywide","Citywide",13.0,12.2,13.9,0,0],[2004,"Age group","18-24 Years",14.2,11.4,17.4,0,1],[2004,"Age group","25-44 Years",12.3,11.1,13.6,0,1],[2004,"Age group","45-64 Years",14.8,13.3,16.5,0,1],[2004,"Age group","65 and over",10.8,9.2,12.7,0,1],[2004,"Borough","Bronx",18.2,15.9,20.9,0,0],[2004,"Borough","Brooklyn",13.0,11.6,14.5,0,0],[2004,"Borough","Manhattan",13.7,11.8,15.7,0,0],[2004,"Borough","Queens",9.9,8.6,11.4,0,0],[2004,"Borough","Staten Island",12.9,9.8,16.8,0,0],[2004,"Race/ethnicity","Asian/Pacific Islander",10.9,8.4,14.1,0,0],[2004,"Race/ethnicity","Black",16.6,14.8,18.7,0,0],[2004,"Race/ethnicity","Latino",15.9,14.1,17.9,0,0],[2004,"Race/ethnicity","Other",14.1,9.9,19.7,0,0],[2004,"Race/ethnicity","White",10.4,9.1,11.7,0,0],[2004,"Sex","Female",15.1,14.0,16.2,0,0],[2004,"Sex","Male",10.7,9.5,12.0,0,0],[2006,"Citywide","Citywide",12.7,11.9,13.6,0,0],[2006,"Age group","18-24 Years",15.4,12.2,19.2,0,1],[2006,"Age group","25-44 Years",12.4,11.1,13.8,0,1],[2006,"Age group","45-64 Years",13.5,12.2,14.9,0,1],[2006,"Age group","65 and over",10.0,8.7,11.4,0,1],[2006,"Borough","Bronx",17.9,15.5,20.5,0,0],[2006,"Borough","Brooklyn",11.9,10.6,13.3,0,0],[2006,"Borough","Manhattan",14.9,12.9,17.2,0,0],[2006,"Borough","Queens",9.4,8.1,10.9,0,0],[2006,"Borough","Staten Island",11.0,8.4,14.2,0,0],[2006,"Race/ethnicity","Asian/Pacific Islander",7.0,5.2,9.2,0,0],[2006,"Race/ethnicity","Black",15.4,13.6,17.4,0,0],[2006,"Race/ethnicity","Latino",15.3,13.7,17.1,0,0],[2006,"Race/ethnicity","Other",15.7,11.0,21.8,0,0],[2006,"Race/ethnicity","White",11.2,9.8,12.7,0,0],[2006,"Sex","Female",14.9,13.7,16.1,0,0],[2006,"Sex","Male",10.1,9.0,11.3,0,0],[2007,"Citywide","Citywide",12.7,11.8,13.6,0,0],[2007,"Age group","18-24 Years",15.1,11.8,19.1,0,1],[2007,"Age group","25-44 Years",12.4,11.1,13.9,0,1],[2007,"Age group","45-64 Years",13.4,12.2,14.8,0,1],[2007,"Age group","65 and over",9.9,8.5,11.5,0,1],[2007,"Borough","Bronx",15.8,13.5,18.3,0,0],[2007,"Borough","Brooklyn",12.3,10.9,13.9,0,0],[2007,"Borough","Manhattan",12.8,10.9,15.0,0,0],[2007,"Borough","Queens",11.3,9.7,13.1,0,0],[2007,"Borough","Staten Island",12.6,9.6,16.4,0,0],[2007,"Race/ethnicity","Asian/Pacific Islander",8.1,5.9,11.2,0,0],[2007,"Race/ethnicity","Black",13.3,11.6,15.2,0,0],[2007,"Race/ethnicity","Latino",16.4,14.6,18.4,0,0],[2007,"Race/ethnicity","Other",16.6,11.1,23.9,0,0],[2007,"Race/ethnicity","White",11.6,10.2,13.2,0,0],[2007,"Sex","Female",14.7,13.5,16.0,0,0],[2007,"Sex","Male",10.2,9.0,11.5,0,0],[2008,"Citywide","Citywide",13.5,12.5,14.7,0,0],[2008,"Age group","18-24 Years",20.3,15.6,25.9,0,1],[2008,"Age group","25-44 Years",12.1,10.5,13.8,0,1],[2008,"Age group","45-64 Years",14.2,12.7,15.7,0,1],[2008,"Age group","65 and over",10.8,9.2,12.7,0,1],[2008,"Borough","Bronx",19.8,16.9,23.0,0,0],[2008,"Borough","Brooklyn",12.0,10.3,13.9,0,0],[2008,"Borough","Manhattan",15.0,12.6,17.8,0,0],[2008,"Borough","Queens",11.2,9.4,13.4,0,0],[2008,"Borough","Staten Island",10.9,8.2,14.4,0,0],[2008,"Race/ethnicity","Asian/Pacific Islander",6.7,4.5,9.9,0,0],[2008,"Race/ethnicity","Black",14.9,12.8,17.4,0,0],[2008,"Race/ethnicity","Latino",18.3,16.0,20.7,0,0],[2008,"Race/ethnicity","Other",20.5,13.5,30.0,0,0],[2008,"Race/ethnicity","White",11.4,9.7,13.3,0,0],[2008,"Sex","Female",15.8,14.3,17.4,0,0],[2008,"Sex","Male",10.9,9.5,12.5,0,0],[2009,"Citywide","Citywide",11.5,10.5,12.5,0,0],[2009,"Age group","18-24 Years",16.9,12.9,21.8,0,1],[2009,"Age group","25-44 Years",10.4,9.0,12.1,0,1],[2009,"Age group","45-64 Years",11.3,10.0,12.7,0,1],[2009,"Age group","65 and over",10.1,8.6,11.9,0,1],[2009,"Borough","Bronx",15.9,13.5,18.6,0,0],[2009,"Borough","Brooklyn",9.7,8.2,11.4,0,0],[2009,"Borough","Manhattan",11.6,9.4,14.2,0,0],[2009,"Borough","Queens",11.1,9.3,13.1,0,0],[2009,"Borough","Staten Island",9.7,7.5,12.6,0,0],[2009,"Race/ethnicity","Asian/Pacific Islander",6.5,4.6,9.2,0,0],[2009,"Race/ethnicity","Black",15.0,12.6,17.6,0,0],[2009,"Race/ethnicity","Latino",14.1,12.3,16.1,0,0],[2009,"Race/ethnicity","Other",13.5,7.9,22.2,0,0],[2009,"Race/ethnicity","White",9.3,7.9,10.9,0,0],[2009,"Sex","Female",13.1,11.8,14.5,0,0],[2009,"Sex","Male",9.5,8.2,11.0,0,0],[2010,"Citywide","Citywide",10.8,9.9,11.8,0,0],[2010,"Age group","18-24 Years",14.4,10.9,18.8,0,1],[2010,"Age group","25-44 Years",10.6,9.1,12.3,0,1],[2010,"Age group","45-64 Years",11.1,9.7,12.7,0,1],[2010,"Age group","65 and over",8.2,6.9,9.7,0,1],[2010,"Borough","Bronx",16.3,14.0,19.0,0,0],[2010,"Borough","Brooklyn",9.4,7.8,11.2,0,0],[2010,"Borough","Manhattan",11.9,9.7,14.6,0,0],[2010,"Borough","Queens",9.3,7.7,11.1,0,0],[2010,"Borough","Staten Island",7.3,5.1,10.5,0,0],[2010,"Race/ethnicity","Asian/Pacific Islander",7.4,5.1,10.7,0,0],[2010,"Race/ethnicity","Black",12.1,10.2,14.3,0,0],[2010,"Race/ethnicity","Latino",13.8,12.0,15.9,0,0],[2010,"Race/ethnicity","Other",11.0,6.0,19.3,1,0],[2010,"Race/ethnicity","White",9.6,8.0,11.4,0,0],[2010,"Sex","Female",12.3,11.1,13.7,0,0],[2010,"Sex","Male",8.9,7.6,10.5,0,0],[2011,"Citywide","Citywide",11.9,10.7,13.2,0,0],[2011,"Age group","18-24 Years",12.8,9.0,17.9,0,1],[2011,"Age group","25-44 Years",11.5,9.5,13.9,0,1],[2011,"Age group","45-64 Years",12.2,10.4,14.2,0,1],[2011,"Age group","65 and over",11.8,9.6,14.4,0,1],[2011,"Borough","Bronx",17.9,14.6,21.8,0,0],[2011,"Borough","Brooklyn",11.6,9.5,14.1,0,0],[2011,"Borough","Manhattan",11.1,8.5,14.4,0,0],[2011,"Borough","Queens",9.1,7.4,11.1,0,0],[2011,"Borough","Staten Island",14.5,9.9,20.6,0,0],[2011,"Race/ethnicity","Asian/Pacific Islander",8.8,6.0,12.8,0,0],[2011,"Race/ethnicity","Black",12.7,10.3,15.5,0,0],[2011,"Race/ethnicity","Latino",17.1,14.5,20.1,0,0],[2011,"Race/ethnicity","Other",13.5,6.3,26.7,1,0],[2011,"Race/ethnicity","White",8.7,7.1,10.7,0,0],[2011,"Sex","Female",13.6,11.9,15.4,0,0],[2011,"Sex","Male",10.0,8.3,12.0,0,0],[2012,"Citywide","Citywide",12.5,11.5,13.7,0,0],[2012,"Age group","18-24 Years",18.2,14.3,22.8,0,1],[2012,"Age group","25-44 Years",12.2,10.5,14.1,0,1],[2012,"Age group","45-64 Years",12.9,11.2,14.8,0,1],[2012,"Age group","65 and over",8.5,7.2,10.0,0,1],[2012,"Borough","Bronx",18.1,15.3,21.4,0,0],[2012,"Borough","Brooklyn",11.8,10.1,13.8,0,0],[2012,"Borough","Manhattan",11.6,9.6,14.1,0,0],[2012,"Borough","Queens",10.5,8.7,12.8,0,0],[2012,"Borough","Staten Island",14.3,10.1,19.8,0,0],[2012,"Race/ethnicity","Asian/Pacific Islander",6.7,4.6,9.7,0,0],[2012,"Race/ethnicity","Black",15.0,12.7,17.5,0,0],[2012,"Race/ethnicity","Latino",16.2,14.2,18.5,0,0],[2012,"Race/ethnicity","Other",18.3,11.5,27.7,0,0],[2012,"Race/ethnicity","White",10.9,9.0,13.2,0,0],[2012,"Sex","Female",14.5,13.1,16.1,0,0],[2012,"Sex","Male",10.1,8.7,11.8,0,0],[2013,"Citywide","Citywide",11.7,10.8,12.6,0,0],[2013,"Age group","18-24 Years",13.7,11.0,16.9,0,1],[2013,"Age group","25-44 Years",10.8,9.5,12.3,0,1],[2013,"Age group","45-64 Years",11.3,10.0,12.8,0,1],[2013,"Age group","65 and over",12.9,10.7,15.3,0,1],[2013,"Borough","Bronx",17.0,14.7,19.6,0,0],[2013,"Borough","Brooklyn",10.1,8.6,11.7,0,0],[2013,"Borough","Manhattan",14.9,12.9,17.2,0,0],[2013,"Borough","Queens",8.1,6.7,9.7,0,0],[2013,"Borough","Staten Island",12.6,9.2,16.8,0,0],[2013,"Race/ethnicity","Asian/Pacific Islander",6.0,4.4,8.1,0,0],[2013,"Race/ethnicity","Black",13.9,12.1,16.0,0,0],[2013,"Race/ethnicity","Latino",14.2,12.6,16.0,0,0],[2013,"Race/ethnicity","Other",10.9,6.8,17.2,0,0],[2013,"Race/ethnicity","White",10.5,9.0,12.3,0,0],[2013,"Sex","Female",13.9,12.6,15.2,0,0],[2013,"Sex","Male",9.0,7.9,10.2,0,0],[2014,"Citywide","Citywide",11.3,10.5,12.3,0,0],[2014,"Age group","18-24 Years",13.9,11.1,17.3,0,1],[2014,"Age group","25-44 Years",10.3,8.9,11.9,0,1],[2014,"Age group","45-64 Years",12.2,10.8,13.8,0,1],[2014,"Age group","65 and over",10.2,8.5,12.3,0,1],[2014,"Borough","Bronx",14.2,11.9,16.9,0,0],[2014,"Borough","Brooklyn",10.8,9.3,12.5,0,0],[2014,"Borough","Manhattan",12.1,10.3,14.1,0,0],[2014,"Borough","Queens",9.3,7.7,11.2,0,0],[2014,"Borough","Staten Island",14.3,10.8,18.6,0,0],[2014,"Race/ethnicity","Asian/Pacific Islander",4.9,3.6,6.8,0,0],[2014,"Race/ethnicity","Black",12.4,10.6,14.5,0,0],[2014,"Race/ethnicity","Latino",14.8,13.0,16.8,0,0],[2014,"Race/ethnicity","Other",14.2,8.9,21.9,0,0],[2014,"Race/ethnicity","White",10.3,8.8,12.0,0,0],[2014,"Sex","Female",12.7,11.5,14.1,0,0],[2014,"Sex","Male",9.7,8.5,11.0,0,0],[2017,"Citywide","Citywide",13.4,12.4,14.3,0,0],[2017,"Age group","18-24 Years",18.2,14.8,22.0,0,1],[2017,"Age group","25-44 Years",11.8,10.4,13.4,0,1],[2017,"Age group","45-64 Years",14.1,12.7,15.8,0,1],[2017,"Age group","65 and over",12.1,10.5,13.9,0,1],[2017,"Borough","Bronx",17.0,14.8,19.4,0,0],[2017,"Borough","Brooklyn",12.4,11.0,14.0,0,0],[2017,"Borough","Manhattan",15.5,13.1,18.2,0,0],[2017,"Borough","Queens",11.6,10.0,13.5,0,0],[2017,"Borough","Staten Island",9.9,6.8,14.2,0,0],[2017,"Race/ethnicity","Asian/Pacific Islander",8.0,6.3,10.2,0,0],[2017,"Race/ethnicity","Black",17.2,15.0,19.6,0,0],[2017,"Race/ethnicity","Latino",16.4,14.6,18.3,0,0],[2017,"Race/ethnicity","Other",14.9,10.4,21.0,0,0],[2017,"Race/ethnicity","White",11.1,9.5,13.0,0,0],[2017,"Sex","Female",14.7,13.4,16.1,0,0],[2017,"Sex","Male",11.8,10.5,13.1,0,0],[2018,"Citywide","Citywide",13.5,12.5,14.6,0,0],[2018,"Age group","18-24 Years",17.1,13.7,21.0,0,1],[2018,"Age group","25-44 Years",12.6,11.0,14.4,0,1],[2018,"Age group","45-64 Years",13.8,12.1,15.7,0,1],[2018,"Age group","65 and over",12.6,10.6,14.9,0,1],[2018,"Borough","Bronx",16.4,14.1,18.9,0,0],[2018,"Borough","Brooklyn",12.2,10.5,14.1,0,0],[2018,"Borough","Manhattan",15.3,13.1,17.9,0,0],[2018,"Borough","Queens",12.0,10.1,14.2,0,0],[2018,"Borough","Staten Island",12.7,8.8,18.0,0,0],[2018,"Race/ethnicity","Asian/Pacific Islander",8.5,6.2,11.7,0,0],[2018,"Race/ethnicity","Black",16.1,13.8,18.8,0,0],[2018,"Race/ethnicity","Latino",17.0,15.0,19.1,0,0],[2018,"Race/ethnicity","Other",14.1,9.5,20.4,0,0],[2018,"Race/ethnicity","White",11.6,10.0,13.5,0,0],[2018,"Sex","Female",15.2,13.8,16.8,0,0],[2018,"Sex","Male",11.4,10.0,12.8,0,0],[2019,"Citywide","Citywide",14.0,12.9,15.2,0,0],[2019,"Age group","18-24 Years",19.6,15.7,24.2,0,1],[2019,"Age group","25-44 Years",13.1,11.4,15.0,0,1],[2019,"Age group","45-64 Years",14.0,12.1,16.0,0,1],[2019,"Age group","65 and over",11.9,9.8,14.4,0,1],[2019,"Borough","Bronx",15.4,12.9,18.2,0,0],[2019,"Borough","Brooklyn",13.8,12.0,15.9,0,0],[2019,"Borough","Manhattan",15.4,12.8,18.4,0,0],[2019,"Borough","Queens",12.0,10.0,14.4,0,0],[2019,"Borough","Staten Island",15.6,11.4,21.0,0,0],[2019,"Race/ethnicity","Asian/Pacific Islander",7.7,5.7,10.3,0,0],[2019,"Race/ethnicity","Black",17.6,15.0,20.5,0,0],[2019,"Race/ethnicity","Latino",15.2,13.2,17.5,0,0],[2019,"Race/ethnicity","Other",13.8,9.2,20.1,0,0],[2019,"Race/ethnicity","White",13.9,11.9,16.1,0,0],[2019,"Sex","Female",14.9,13.4,16.6,0,0],[2019,"Sex","Male",12.8,11.3,14.5,0,0],[2020,"Citywide","Citywide",14.2,13.1,15.3,0,0],[2020,"Age group","18-24 Years",18.5,14.8,22.7,0,1],[2020,"Age group","25-44 Years",13.1,11.5,14.9,0,1],[2020,"Age group","45-64 Years",13.2,11.5,15.1,0,1],[2020,"Age group","65 and over",15.2,12.7,18.1,0,1],[2020,"Borough","Bronx",20.7,17.8,24.0,0,0],[2020,"Borough","Brooklyn",12.3,10.7,14.2,0,0],[2020,"Borough","Manhattan",15.4,13.0,18.2,0,0],[2020,"Borough","Queens",11.5,9.6,13.6,0,0],[2020,"Borough","Staten Island",13.8,9.8,19.0,0,0],[2020,"Race/ethnicity","Asian/Pacific Islander",7.2,5.6,9.2,0,0],[2020,"Race/ethnicity","Black",17.9,15.4,20.8,0,0],[2020,"Race/ethnicity","Latino",18.3,16.1,20.6,0,0],[2020,"Race/ethnicity","Other",21.2,13.5,31.8,0,0],[2020,"Race/ethnicity","White",12.2,10.4,14.3,0,0],[2020,"Sex","Female",15.4,13.9,17.0,0,0],[2020,"Sex","Male",12.5,11.0,14.1,0,0]];
+const ROWS = RAW.map(r => ({
+  year: r[0], dim: r[1], key: r[2], est: r[3], lo: r[4], hi: r[5],
+  ci: r[4].toFixed(1) + '% – ' + r[5].toFixed(1) + '%',
+  type: r[7] ? 'Unadjusted (crude)' : 'Age-adjusted',
+  flag: r[6] ? 'Interpret with caution' : ''
+}));
+const CITY = ROWS.filter(r => r.dim === 'Citywide').sort((a, b) => a.year - b.year);
+const GROUPS = ROWS.filter(r => r.dim !== 'Citywide');
+const DIMS = ['Age group', 'Borough', 'Race/ethnicity', 'Sex'];
+const YEARS = CITY.map(r => r.year);
+
+const $ = id => document.getElementById(id);
+const toggle = $('toggle'), sel = $('group'), keyEl = $('key');
+
+DIMS.forEach(dim => {
+  const og = document.createElement('optgroup');
+  og.label = dim;
+  [...new Set(GROUPS.filter(r => r.dim === dim).map(r => r.key))].forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = k; og.appendChild(o);
+  });
+  sel.appendChild(og);
+});
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const tip = {
+  Group: 'datum.key', Year: 'datum.year',
+};
+const tooltip = [
+  {field: 'key', title: 'Group'},
+  {field: 'year', title: 'Year', type: 'ordinal'},
+  {field: 'est', title: 'Estimate (%)', format: '.1f'},
+  {field: 'ci', title: '95% CI'},
+  {field: 'type', title: 'Estimate type'},
+  {field: 'flag', title: 'Note'}
+];
+const x = {field: 'year', type: 'quantitative',
+  axis: {title: null, values: YEARS, format: 'd', labelOverlap: 'greedy', grid: false},
+  scale: {zero: false, nice: false, padding: 8}};
+const y = {field: 'est', type: 'quantitative',
+  axis: {title: null, labelExpr: "datum.value + '%'", tickCount: 4},
+  scale: {zero: true, nice: true}};
+
+function spec() {
+  const blue = css('--blue'), gray = css('--gray'), hl = css('--hl');
+  const showGroups = toggle.checked, picked = showGroups ? sel.value : '';
+  const layers = [];
+
+  if (showGroups) {
+    layers.push({
+      data: {values: GROUPS.filter(r => r.key !== picked)},
+      mark: {type: 'line', color: gray, strokeWidth: 1.6, opacity: picked ? 0.5 : 0.8,
+             point: {color: gray, size: 14, filled: true, opacity: picked ? 0.5 : 0.8}, tooltip: true},
+      encoding: {x, y, detail: {field: 'key'}, tooltip}
+    });
+  }
+  if (picked) {
+    layers.push({
+      data: {values: GROUPS.filter(r => r.key === picked)},
+      mark: {type: 'line', color: hl, strokeWidth: 3.5, point: {color: hl, size: 55, filled: true}, tooltip: true},
+      encoding: {x, y, tooltip}
+    });
+  }
+  layers.push({
+    data: {values: CITY.map(r => ({...r, key: 'Citywide'}))},
+    mark: {type: 'line', color: blue, strokeWidth: 4, point: {color: blue, size: 70, filled: true}, tooltip: true},
+    encoding: {x, y, tooltip}
+  });
+
+  return {
+    $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+    width: 'container', height: 400, autosize: {type: 'fit-x', contains: 'padding'},
+    background: null,
+    layer: layers,
+    config: {
+      font: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+      view: {stroke: null},
+      axis: {labelColor: css('--muted'), titleColor: css('--muted'), gridColor: css('--grid'),
+             domainColor: css('--grid'), tickColor: css('--grid'), labelFontSize: 12, titleFontSize: 12, titleFontWeight: 500}
+    }
+  };
+}
+
+function renderKey() {
+  const picked = toggle.checked ? sel.value : '';
+  let h = '<span><i style="border-color:var(--blue)"></i>Citywide (age-adjusted)</span>';
+  if (picked) h += '<span><i style="border-color:var(--hl)"></i>' + picked + '</span>';
+  if (toggle.checked) h += '<span><i style="border-color:var(--gray);border-top-width:2px"></i>' + (picked ? 'Other groups' : 'Age, borough, race/ethnicity, sex') + '</span>';
+  keyEl.innerHTML = h;
+}
+
+function draw() {
+  sel.disabled = !toggle.checked;
+  // renderKey();
+  vegaEmbed('#chart', spec(), {actions: false, renderer: 'svg'}).catch(console.error);
+}
+
+toggle.addEventListener('change', draw);
+sel.addEventListener('change', draw);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+draw();
+</script>
+</body>
+</html>
