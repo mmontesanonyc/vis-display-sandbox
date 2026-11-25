@@ -342,8 +342,6 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
           <h3 id="dnHead">Data notes</h3>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
           <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
-          <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
         </section>
 
         <section class="info-card" aria-labelledby="ciHead">
@@ -351,15 +349,11 @@ h1{margin:0 0 6px;font-size:clamp(26px,3.5vw,34px);font-weight:600;line-height:1
           <p>Surveys ask a sample of people in order to learn about everyone. The result is an estimate of the true value in the whole population, not the exact value.</p>
           <p>For example, if we survey 100 people and 20 say they have a cat, that doesn’t mean exactly 20% of the whole city has a cat. A different group of 100 people might have given us 17% or 24%. So alongside the estimate (20%), we calculate a <strong>confidence interval</strong>: a range that, with a stated level of confidence (usually 95%), is expected to include the true value. How wide the interval is depends on how many people we surveyed, how much their answers vary, and how the survey was designed and weighted. In this example, the interval might run from about 12% to 28%.</p>
           <h4>Smaller groups mean wider intervals</h4>
-          <p>Suppose we survey 10,000 New Yorkers:</p>
-          <ul>
-            <li>For the whole sample, the interval is narrow, so we can pin down the estimate quite closely.</li>
-            <li>When we split answers by sex, each group has about 5,000 people. The intervals get somewhat wider.</li>
-            <li>When we split answers by neighborhood (there are 42 UHF neighborhoods), each has only a few hundred people on average. The intervals get much wider, so any one neighborhood’s estimate is much less precise.</li>
-          </ul>
-          <h4>Intervals help us compare groups</h4>
-          <p>Say 20% of residents in Neighborhood A report having a dog, compared with 22% in Neighborhood B. It’s tempting to say B has higher dog ownership. But if A’s interval is 16% to 24% and B’s is 18% to 26%, the two overlap heavily. The 2-point gap could easily be due to chance in who we happened to survey, so we can’t conclude there’s a real difference.</p>
+          <p>When we survey 10,000 New Yorkers, the interval is narrow, so we can pin down the estimate quite closely. When we split answers by sex, each group has about 5,000 people. The intervals get somewhat wider. When we split answers by neighborhood (there are 42 UHF neighborhoods), each has only a few hundred people on average. The intervals get much wider, so any one neighborhood’s estimate is less precise.</p>
           <p><strong>In short:</strong> an estimate is our best single guess at the true value, based on asking a sample. The confidence interval shows how much uncertainty surrounds it. The narrower the interval, the more precise the estimate.</p>
+          <h4>Comparing two estimates</h4>
+          <p>Comparing two estimates is not as straightforward as looking at one number (let's say, an estimate for Queens) and another (the estimate for the rest of the City) and seeing which is higher. Because these are estimates derived from survey data, to say that one estimate is different than another requires running a statistical test on the difference between the two estimates. This test takes into consideration data about the uncertainty in each estimate, the sample sizes, and the variability of the responses.</p>
+          <p>This page reports differences for 42 neighborhoods, 2 sexes, 5 racial/ethnic groups, 4 age groups, and 5 boroughs - testing each group for significant differences compared to the rest of the city. <a href="">For more detailed statistical testing, please make a data request</a>.</p>
         </section>
       </div>
 
