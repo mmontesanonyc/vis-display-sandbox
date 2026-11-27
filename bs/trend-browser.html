@@ -10,7 +10,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181f;--fg:#e8ecf1;--muted:#a0a9b6;--grid:#2a313c;--blue:#5b9bff;--gray:#6b7480;--hl:#ff9248;--ctl:#1e242d;--border:#3a4350}}
 :root[data-theme="dark"]{--bg:#14181f;--fg:#e8ecf1;--muted:#a0a9b6;--grid:#2a313c;--blue:#5b9bff;--gray:#6b7480;--hl:#ff9248;--ctl:#1e242d;--border:#3a4350}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
+main,main *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:960px;margin:0 auto;padding:24px 16px 40px}
 h1{font-size:1.35rem;margin:0 0 4px;line-height:1.25}
@@ -27,9 +27,9 @@ h1{font-size:1.35rem;margin:0 0 4px;line-height:1.25}
 .field label{font-weight:600}
 select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:210px;max-width:100%}
 select:disabled{opacity:.5;cursor:not-allowed}
-.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9rem;margin:0 0 6px;min-height:1.5em}
-.key span{display:inline-flex;align-items:center;gap:6px}
-.key i{display:inline-block;width:22px;height:0;border-top-width:4px;border-top-style:solid;border-radius:2px}
+.chart-legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9rem;margin:0 0 6px;min-height:1.5em}
+.chart-legend span{display:inline-flex;align-items:center;gap:6px}
+.chart-legend i{display:inline-block;width:22px;height:0;border-top-width:4px;border-top-style:solid;border-radius:2px}
 #chart{width:100%;overflow-x:auto}
 #chart .vega-embed{width:100%}
 .note{color:var(--muted);font-size:.82rem;margin-top:10px}
@@ -50,7 +50,7 @@ select:disabled{opacity:.5;cursor:not-allowed}
   </div>
  </div>
 
- <div class="key" id="key" aria-live="polite"></div>
+ <div class="chart-legend" id="key" aria-live="polite"></div>
  <div id="chart" role="img" aria-label="Line chart of the citywide age-adjusted prevalence of ever having asthma by year"></div>
  <p class="note">Citywide, borough, race/ethnicity and sex lines are age-adjusted estimates. Age-group lines are unadjusted (crude) estimates. No survey data for 2005, 2015 and 2016, so lines connect across those gaps. Hover a point for the estimate and 95% confidence interval.</p>
  <hr>
@@ -60,7 +60,6 @@ select:disabled{opacity:.5;cursor:not-allowed}
     <li>Only compare a single group to citywide, not group-to-group</li>
     <li>Give a possibility to highlight group-to-whole differences if it's a meaningful difference. </li>
  </ul> 
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
@@ -79,6 +78,8 @@ const CITY = ROWS.filter(r => r.dim === 'Citywide').sort((a, b) => a.year - b.ye
 const GROUPS = ROWS.filter(r => r.dim !== 'Citywide');
 const DIMS = ['Age group', 'Borough', 'Race/ethnicity', 'Sex'];
 const YEARS = CITY.map(r => r.year);
+// Fixed y-axis ceiling: highest estimate across every group, rounded up to the next 5
+const YMAX = Math.ceil(Math.max(...ROWS.map(r => r.est)) / 5) * 5;
 
 const $ = id => document.getElementById(id);
 const toggle = $('toggle'), sel = $('group'), keyEl = $('key');
@@ -111,7 +112,7 @@ const x = {field: 'year', type: 'quantitative',
   scale: {zero: false, nice: false, padding: 8}};
 const y = {field: 'est', type: 'quantitative',
   axis: {title: null, labelExpr: "datum.value + '%'", tickCount: 4},
-  scale: {zero: true, nice: true}};
+  scale: {domain: [0, YMAX], nice: false}};
 
 function spec() {
   const blue = css('--blue'), gray = css('--gray'), hl = css('--hl');
